@@ -33,7 +33,8 @@ struct Material
 {
 	// Color components (ambient, diffuse & specular),
 	// with default values
-    vec3f Ka = {0,0.5,0}, Kd = {0,0.5,0}, Ks = {1,1,1};
+    vec3f Ka = { 0.0f,0.0f,0.0f}, Kd = {1.0f,1.0f,1.0f}, Ks = {1,1,1};
+	float Shininess = 5;
     
 	std::string name;
 
@@ -44,6 +45,7 @@ struct Material
 
 	// Device textures
 	Texture diffuse_texture;
+	Texture normal_texture;
 	// + other texture types
 };
 

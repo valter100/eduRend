@@ -167,7 +167,7 @@ bool InputHandler::Update(){
 	return true;
 }
 
-void InputHandler::GetMouseLocation(int& mouseX, int& mouseY){
+void InputHandler::SetMouseLocation(int mouseX, int mouseY){
 	mouseX = this->mouseX;
 	mouseY = this->mouseY;
 }
@@ -177,6 +177,21 @@ bool InputHandler::IsKeyPressed(Keys key){
 		return true;
 	}
 	return false;
+}
+
+bool InputHandler::IsLeftMouseButtonPressed()
+{
+	return (GetKeyState(VK_LBUTTON) & 0x100) != 0;
+}
+
+int InputHandler::GetMouseXPosition() 
+{
+	return mouseX;
+}
+
+int InputHandler::GetMouseYPosition()
+{
+	return mouseY;
 }
 
 LONG InputHandler::GetMouseDeltaX(){

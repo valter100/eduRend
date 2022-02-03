@@ -30,21 +30,34 @@ protected:
 	// Pointers to the class' vertex & index arrays
 	ID3D11Buffer* vertex_buffer = nullptr;
 	ID3D11Buffer* index_buffer = nullptr;
+	ID3D11Buffer* materialAndShininessBuffer = nullptr;
+	ID3D11SamplerState* samplerState = nullptr;
+	ID3D11SamplerState* samplerState2 = nullptr;
+	ID3D11SamplerState* samplerState3 = nullptr;
 
 public:
 
 	Model(
-		ID3D11Device* dxdevice, 
-		ID3D11DeviceContext* dxdevice_context) 
-		:	dxdevice(dxdevice),
-			dxdevice_context(dxdevice_context)
-	{ }
+		ID3D11Device* dxdevice,
+		ID3D11DeviceContext* dxdevice_context);
+
+	struct MaterialAndShininessBuffer
+	{
+		vec4f Ambient;
+		vec4f Diffuse;
+		vec4f Specular;
+	};
+
+	float shininess = 0.5f;
+
+	void InitMaterialAndShininessBuffer();
+	void CreateSamplerState();
+	void UpdateMaterialAndShininessBuffer(Material material) const;
 
 	//
 	// Abstract render method: must be implemented by derived classes
 	//
 	virtual void Render() const = 0;
-
 	//
 	// Destructor
 	//
@@ -52,6 +65,11 @@ public:
 	{ 
 		SAFE_RELEASE(vertex_buffer);
 		SAFE_RELEASE(index_buffer);
+		SAFE_RELEASE(materialAndShininessBuffer);
+
+		SAFE_RELEASE(samplerState);
+		SAFE_RELEASE(samplerState2);
+		SAFE_RELEASE(samplerState3);
 	}
 };
 

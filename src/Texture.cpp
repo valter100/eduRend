@@ -9,7 +9,7 @@
 #include "Texture.h"
 
 #define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+#include "stb_image.h" //Fråga: varför funkar bara release x64
 
 HRESULT LoadTextureFromFile(
     ID3D11Device* dxdevice,

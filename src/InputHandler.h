@@ -17,7 +17,9 @@ enum Keys {
 	W = DIK_W,
 	A = DIK_A,
 	S = DIK_S,
-	D = DIK_D
+	D = DIK_D,
+	Space = DIK_SPACE,
+	Esc = DIK_ESCAPE
 };
 
 class InputHandler {
@@ -40,8 +42,11 @@ public:
 	bool Initialize(HINSTANCE, HWND, int, int);
 	void Shutdown();
 	bool Update();
-	void GetMouseLocation(int&, int&);
+	void SetMouseLocation(int, int);
 	bool IsKeyPressed(Keys);
+	bool IsLeftMouseButtonPressed();
 	LONG GetMouseDeltaX();
 	LONG GetMouseDeltaY();
+	int GetMouseXPosition();
+	int GetMouseYPosition();
 };
