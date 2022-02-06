@@ -27,15 +27,17 @@ OurTestScene::OurTestScene(
 	int window_height) :
 	Scene(dxdevice, dxdevice_context, window_width, window_height)
 {
-	source1 = new Light(vec3f(0, -2.5f, -20), true);
-	source1->SetAnimationPath(vec3f(0, -2.5f, 10));
+	source1 = new Light(vec3f(0, -0.0f, -20), true, dxdevice, dxdevice_context);
+	source1->AddAnimationPath(vec3f(6, -0.0f, -6.0f));
+	source1->AddAnimationPath(vec3f(0, -0.0f, 8));
+	source1->AddAnimationPath(vec3f(-6, -0.0f, -6.0f));
 
-	source2 = new Light(vec3f(0, 20, -40), true);
-	source2->SetAnimationPath(vec3f(0, -5, -40));
+	source2 = new Light(vec3f(0, 20, -30), true, dxdevice, dxdevice_context);
+	source2->AddAnimationPath(vec3f(0, -5, -30));
 
 	InitTransformationBuffer();
 	// + init other CBuffers
-	//InitCameraAndLightBuffer();
+	InitCameraAndLightBuffer();
 }
 
 //
@@ -52,29 +54,35 @@ void OurTestScene::Init()
 	// Move camera to (0,0,5)
 	camera->moveTo({ 0, 0, 5 });
 	lightSources.push_back(source1);
-	lightSources.push_back(source2);
+	//lightSources.push_back(source2);
 
-	//cube = new Cube(dxdevice, dxdevice_context, nullptr);
-	//secondCube = new Cube(dxdevice, dxdevice_context, cube);
-	//thirdCube = new Cube(dxdevice, dxdevice_context, secondCube);
+	cube = new Cube(dxdevice, dxdevice_context, nullptr);
+	secondCube = new Cube(dxdevice, dxdevice_context, cube);
+	thirdCube = new Cube(dxdevice, dxdevice_context, secondCube);
 
-	//fourthCube = new Cube(dxdevice, dxdevice_context, cube);
-	//fifthCube = new Cube(dxdevice, dxdevice_context, fourthCube);
-	//sixthCube = new Cube(dxdevice, dxdevice_context, fifthCube);
+	fourthCube = new Cube(dxdevice, dxdevice_context, cube);
+	fifthCube = new Cube(dxdevice, dxdevice_context, fourthCube);
+	sixthCube = new Cube(dxdevice, dxdevice_context, fifthCube);
 
-	//cubes.push_back(cube);
-	//cubes.push_back(secondCube);
-	//cubes.push_back(thirdCube);
-	//cubes.push_back(fourthCube);
-	//cubes.push_back(fifthCube);
-	//cubes.push_back(sixthCube);
+	cubes.push_back(cube); models.push_back(cube);
+	cubes.push_back(secondCube); models.push_back(secondCube);
+	cubes.push_back(thirdCube); models.push_back(thirdCube);
+	cubes.push_back(fourthCube); models.push_back(fourthCube);
+	cubes.push_back(fifthCube); models.push_back(fifthCube);
+	cubes.push_back(sixthCube); models.push_back(sixthCube);
 
 	sponza = new OBJModel("assets/crytek-sponza/sponza.obj", dxdevice, dxdevice_context);
-	//bush = new OBJModel("assets/objects/bush/bush.obj", dxdevice, dxdevice_context);
-	//character = new OBJModel("assets/objects/character/character.obj", dxdevice, dxdevice_context);
-	//train = new OBJModel("assets/objects/train/train.obj", dxdevice, dxdevice_context);
-	//gun = new Gun("assets/objects/gun/gun.obj", dxdevice, dxdevice_context, camera, 0.5f);
-	//sphere = new OBJModel("assets/objects/sphere/sphere.obj", dxdevice, dxdevice_context);
+	models.push_back(sponza);
+	bush = new OBJModel("assets/objects/bush/bush.obj", dxdevice, dxdevice_context);
+	models.push_back(bush);
+	character = new OBJModel("assets/objects/character/character.obj", dxdevice, dxdevice_context);
+	models.push_back(character);
+	train = new OBJModel("assets/objects/train/train.obj", dxdevice, dxdevice_context);
+	models.push_back(train);
+	gun = new Gun("assets/objects/gun/gun.obj", dxdevice, dxdevice_context, camera, 0.5f);
+	models.push_back(gun);
+	sphere = new OBJModel("assets/objects/sphere/sphere.obj", dxdevice, dxdevice_context);
+	models.push_back(sphere);
 	ToggleClipping(true);
 }
 
@@ -84,7 +92,7 @@ void OurTestScene::Init()
 //
 void OurTestScene::Update(float dt, InputHandler* input_handler)
 {
-	//gun->Update();
+	gun->Update();
 
 	for (Light* light : lightSources)
 	{
@@ -101,12 +109,24 @@ void OurTestScene::Update(float dt, InputHandler* input_handler)
 
 	if (input_handler->IsKeyPressed(Keys::Right) && !isPressingKey)
 	{
-		camera->ChangePrePos(1);
+		for (Model* model : models)
+		{
+			model->ChangeSamplerState(1);
+		}
+		if (models.size() > 0)
+			std::cout << models[0]->GetCurrentSamplerState() << std::endl;
+		//camera->ChangePrePos(1)
 		isPressingKey = true;
 	}
 	else if (input_handler->IsKeyPressed(Keys::Left) && !isPressingKey)
 	{
-		camera->ChangePrePos(-1);
+		for (Model* model : models)
+		{
+			model->ChangeSamplerState(-1);
+		}
+		if(models.size() > 0)
+			models[0]->GetCurrentSamplerState();
+		//camera->ChangePrePos(-1);
 		isPressingKey = true;
 	}
 	if (input_handler->IsKeyPressed(Keys::Space) && !isPressingKey)
@@ -147,10 +167,10 @@ void OurTestScene::Update(float dt, InputHandler* input_handler)
 			ShowCursor(false);
 		}
 
-		/*if (gun->CanShoot())
+		if (gun->CanShoot())
 		{
 			gun->Shoot();
-		}*/
+		}
 	}
 
 
@@ -164,8 +184,9 @@ void OurTestScene::Update(float dt, InputHandler* input_handler)
 
 #pragma endregion
 #pragma region Cubes
+
 	//Independent scaling
-	/*cube->SetTransformMatrix(
+	cube->SetTransformMatrix(
 		mat4f::translation(-5, -3, -7),
 		mat4f::rotation(angle * 0, 0.0f, 1.0f, 0.0f),
 		mat4f::scaling(1.0f, 1.0f, 1.0f));
@@ -193,7 +214,7 @@ void OurTestScene::Update(float dt, InputHandler* input_handler)
 	sixthCube->SetTransformMatrix(
 		sixthCube->GetParentTransformAndRotation() * mat4f::translation(1.0f, 0.0f, 1.0f),
 		mat4f::rotation(angle * -3, 0.0f, 0.0f, 1.0f),
-		mat4f::scaling(0.2f, 0.2f, 0.2f));*/
+		mat4f::scaling(0.2f, 0.2f, 0.2f));
 
 	//Depentent scaling
 	/*cube->SetTransformMatrix(mat4f::translation(-2, 1, 0) * mat4f::rotation(angle, 0.0f, 1.0f, 0.0f) * mat4f::scaling(0.5f, 0.5f, 0.5f));
@@ -212,7 +233,7 @@ void OurTestScene::Update(float dt, InputHandler* input_handler)
 		mat4f::rotation(fPI / 2, 0.0f, 1.0f, 0.0f) * // Rotate pi/2 radians (90 degrees) around y
 		mat4f::scaling(0.05f);						 // The scene is quite large so scale it down to 5%
 
-	/*MBush = mat4f::translation(-4, -5, -8) *
+	MBush = mat4f::translation(-4, -5, -8) *
 		mat4f::rotation(angle * 0, 0.0f, 0.0f, 0.0f) *
 		mat4f::scaling(1.0f);
 
@@ -230,10 +251,9 @@ void OurTestScene::Update(float dt, InputHandler* input_handler)
 
 	gun->SetTransformMatrix(gun->GetCamera()->GetViewToWorldMatrix(), mat4f::translation(1.25f, -2.5f, -4.0f),
 		mat4f::rotation(1.2f, 0.0f, 1.0f, 0.0f),
-		mat4f::scaling(0.05f));*/
+		mat4f::scaling(0.05f));
 
 #pragma endregion
-
 
 	// Increment the rotation angle.
 	angle += angle_vel * dt;
@@ -253,40 +273,46 @@ void OurTestScene::Render()
 	// Bind transformation_buffer to slot b0 of the VS
 	dxdevice_context->VSSetConstantBuffers(0, 1, &transformation_buffer);
 	// Binds buffers to slots of the PS
-	//dxdevice_context->PSSetConstantBuffers(0, 1, &camera_and_light_buffer);
+	dxdevice_context->PSSetConstantBuffers(0, 1, &camera_and_light_buffer);
 
 	// Obtain the matrices needed for rendering from the camera
 	Mview = camera->Get_WorldToViewMatrix();
 	Mproj = camera->get_ProjectionMatrix();
 
-	//if (!(camera->GetPosition() == oldCamPosition) || source1->HasMoved() || source2->HasMoved());
-	//{
-	//	UpdateCameraAndLightBuffer(camera->GetPosition().xyz0(), vec4f(source1->GetPosition(), 0), vec4f(source2->GetPosition(), 0));
-	//	source1->SetOldPositionToPosition();
-	//	source2->SetOldPositionToPosition();
-	//}
+	if (!(camera->GetPosition() == oldCamPosition) || source1->HasMoved() || source2->HasMoved());
+	{
+		UpdateCameraAndLightBuffer(camera->GetPosition().xyz0(), vec4f(source1->GetPosition(), 0), vec4f(source2->GetPosition(), 0));
+		source1->SetOldPositionToPosition();
+		source2->SetOldPositionToPosition();
+	}
 
 
-	//UpdateCubes(cubes);
-	//UpdateBullets();
+	UpdateCubes(cubes);
+	UpdateBullets();
 
 	UpdateTransformationBuffer(Msponza, Mview, Mproj);
 	sponza->Render();
 
-	//UpdateTransformationBuffer(MBush, Mview, Mproj);
-	//bush->Render();
+	UpdateTransformationBuffer(MBush, Mview, Mproj);
+	bush->Render();
 
-	//UpdateTransformationBuffer(MCharacter, Mview, Mproj);
-	//character->Render();
+	UpdateTransformationBuffer(MCharacter, Mview, Mproj);
+	character->Render();
 
-	//UpdateTransformationBuffer(MTrain, Mview, Mproj);
-	//train->Render();
+	UpdateTransformationBuffer(MTrain, Mview, Mproj);
+	train->Render();
 
-	//UpdateTransformationBuffer(gun->GetTransformMatrix(), Mview, Mproj);
-	//gun->Render();
+	UpdateTransformationBuffer(gun->GetTransformMatrix(), Mview, Mproj);
+	gun->Render();
 
-	//UpdateTransformationBuffer(MSphere, Mview, Mproj);
-	//sphere->Render();
+	UpdateTransformationBuffer(MSphere, Mview, Mproj);
+	sphere->Render();
+
+	for (Light* light : lightSources)
+	{
+		UpdateTransformationBuffer(light->GetTransformMatrix(), Mview, Mproj);
+		light->Render();
+	}
 
 	oldCamPosition = camera->GetPosition();
 }
@@ -294,11 +320,11 @@ void OurTestScene::Render()
 void OurTestScene::Release()
 {
 	SAFE_DELETE(sponza);
-	//SAFE_DELETE(bush);
-	//SAFE_DELETE(character);
-	//SAFE_DELETE(train);
-	//SAFE_DELETE(gun);
-	//SAFE_DELETE(sphere);
+	SAFE_DELETE(bush);
+	SAFE_DELETE(character);
+	SAFE_DELETE(train);
+	SAFE_DELETE(gun);
+	SAFE_DELETE(sphere);
 	SAFE_DELETE(camera);
 
 	SAFE_RELEASE(transformation_buffer);

@@ -5,28 +5,28 @@ Cube::Cube(ID3D11Device* dxdevice, ID3D11DeviceContext* dxdevice_context, Cube* 
 	parent = newParent;
 
 	//Front face
-	GiveVertexValues(v101, vec3f(-1.0f, -1.0f, 1.0f), vec3f({ 1, 0, 0 }), vec2f({ 0, 0 }));
-	GiveVertexValues(v102, vec3f(1.0f, -1.0f, 1.0f), vec3f({ 1, 0, 0 }), vec2f({ 0, 1 }));
-	GiveVertexValues(v103, vec3f(1.0f, 1.0f, 1.0f), vec3f({ 1, 0, 0 }), vec2f({ 1, 1 }));
-	GiveVertexValues(v104, vec3f(-1.0f, 1.0f, 1.0f), vec3f({ 1, 0, 0 }), vec2f({ 1, 0 }));
+	GiveVertexValues(v101, vec3f(-1.0f, -1.0f, 1.0f), vec3f({ 0, 0, 1 }), vec2f({ 0, 0 }));
+	GiveVertexValues(v102, vec3f(1.0f, -1.0f, 1.0f), vec3f({ 0, 0, 1 }), vec2f({ 0, 1 }));
+	GiveVertexValues(v103, vec3f(1.0f, 1.0f, 1.0f), vec3f({ 0, 0, 1 }), vec2f({ 1, 1 }));
+	GiveVertexValues(v104, vec3f(-1.0f, 1.0f, 1.0f), vec3f({ 0, 0, 1 }), vec2f({ 1, 0 }));
 
 	//Right face
-	GiveVertexValues(v201, vec3f(1.0f, 1.0f, 1.0f), vec3f({ 0, 0, 1 }), vec2f({ 0, 0 }));
-	GiveVertexValues(v202, vec3f(1.0f, -1.0f, 1.0f), vec3f({ 0, 0, 1 }), vec2f({ 0, 1 }));
-	GiveVertexValues(v203, vec3f(1.0f, 1.0f, -1.0f), vec3f({ 0, 0, 1 }), vec2f({ 1, 1 }));
-	GiveVertexValues(v204, vec3f(1.0f, -1.0f, -1.0f), vec3f({ 0, 0, 1 }), vec2f({ 1, 0 }));
+	GiveVertexValues(v201, vec3f(1.0f, 1.0f, 1.0f), vec3f({ 1, 0, 0 }), vec2f({ 0, 0 }));
+	GiveVertexValues(v202, vec3f(1.0f, -1.0f, 1.0f), vec3f({ 1, 0, 0 }), vec2f({ 0, 1 }));
+	GiveVertexValues(v203, vec3f(1.0f, 1.0f, -1.0f), vec3f({ 1, 0, 0 }), vec2f({ 1, 1 }));
+	GiveVertexValues(v204, vec3f(1.0f, -1.0f, -1.0f), vec3f({ 1, 0, 0 }), vec2f({ 1, 0 }));
 
 	//Back face
-	GiveVertexValues(v301, vec3f(-1.0f, -1.0f, -1.0f), vec3f({ -1, 0, 0 }), vec2f({ 0, 0 }));
-	GiveVertexValues(v302, vec3f(1.0f, -1.0f, -1.0f), vec3f({ -1, 0, 0 }), vec2f({ 0, 1 }));
-	GiveVertexValues(v303, vec3f(1.0f, 1.0f, -1.0f), vec3f({ -1, 0, 0 }), vec2f({ 1, 1 }));
-	GiveVertexValues(v304, vec3f(-1.0f, 1.0f, -1.0f), vec3f({ -1, 0, 0 }), vec2f({ 1, 0 }));
+	GiveVertexValues(v301, vec3f(-1.0f, -1.0f, -1.0f), vec3f({ 0, 0, -1 }), vec2f({ 0, 0 }));
+	GiveVertexValues(v302, vec3f(1.0f, -1.0f, -1.0f), vec3f({ 0, 0, -1 }), vec2f({ 0, 1 }));
+	GiveVertexValues(v303, vec3f(1.0f, 1.0f, -1.0f), vec3f({ 0, 0, -1 }), vec2f({ 1, 1 }));
+	GiveVertexValues(v304, vec3f(-1.0f, 1.0f, -1.0f), vec3f({ 0, 0, -1 }), vec2f({ 1, 0 }));
 
 	//Left face
-	GiveVertexValues(v401, vec3f(-1.0f, 1.0f, 1.0f), vec3f({ 0, 0, -1 }), vec2f({ 0, 0 }));
-	GiveVertexValues(v402, vec3f(-1.0f, -1.0f, 1.0f), vec3f({ 0, 0, -1 }), vec2f({ 0, 1 }));
-	GiveVertexValues(v403, vec3f(-1.0f, 1.0f, -1.0f), vec3f({ 0, 0, -1 }), vec2f({ 1, 1 }));
-	GiveVertexValues(v404, vec3f(-1.0f, -1.0f, -1.0f), vec3f({ 0, 0, -1 }), vec2f({ 1, 0 }));
+	GiveVertexValues(v401, vec3f(-1.0f, 1.0f, 1.0f), vec3f({ -1, 0, 0 }), vec2f({ 0, 0 }));
+	GiveVertexValues(v402, vec3f(-1.0f, -1.0f, 1.0f), vec3f({ -1, 0, 0 }), vec2f({ 0, 1 }));
+	GiveVertexValues(v403, vec3f(-1.0f, 1.0f, -1.0f), vec3f({ -1, 0, 0 }), vec2f({ 1, 1 }));
+	GiveVertexValues(v404, vec3f(-1.0f, -1.0f, -1.0f), vec3f({ -1, 0, 0 }), vec2f({ 1, 0 }));
 
 	//Upper face
 	GiveVertexValues(v501, vec3f(-1.0f, 1.0f, 1.0f), vec3f({ 0, 1, 0 }), vec2f({ 0, 0 }));
@@ -42,7 +42,7 @@ Cube::Cube(ID3D11Device* dxdevice, ID3D11DeviceContext* dxdevice_context, Cube* 
 
 	// Populate the index array with two triangles
 	// Front Triangle #1
-	CreateTriangle(0, 1, 3);
+	CreateTriangle(0, 1, 3); 
 	//  Front Triangle #2
 	CreateTriangle(1, 2, 3);
 
@@ -102,9 +102,10 @@ Cube::Cube(ID3D11Device* dxdevice, ID3D11DeviceContext* dxdevice_context, Cube* 
 
 	nbr_indices = (unsigned int)indices.size();
 
-	//baseMaterial.Kd_texture_filename = "assets/objects/cube/sampledDiffuseColorPot.jpg";
+	baseMaterial.Kd_texture_filename = "assets/objects/cube/diffuseColor.jpg";
+	baseMaterial.normal_texture_filename = "assets/objects/cube/normalMap.png";
 
-	//LoadTexture();
+	LoadTexture();
 }
 
 void Cube::Render() const
@@ -113,18 +114,29 @@ void Cube::Render() const
 	const UINT32 stride = sizeof(Vertex); //  sizeof(float) * 8;
 	const UINT32 offset = 0;
 	dxdevice_context->IASetVertexBuffers(0, 1, &vertex_buffer, &stride, &offset);
+
 	// Bind our index buffer
 	dxdevice_context->IASetIndexBuffer(index_buffer, DXGI_FORMAT_R32_UINT, 0);
-	//dxdevice_context->PSSetConstantBuffers(1, 1, &materialAndShininessBuffer);
+	dxdevice_context->PSSetConstantBuffers(1, 1, &materialAndShininessBuffer);
 
-	//dxdevice_context->PSSetShaderResources(0, 1, &baseMaterial.diffuse_texture.texture_SRV);
-	//dxdevice_context->PSSetShaderResources(1, 1, &baseMaterial.normal_texture.texture_SRV);
-	//dxdevice_context->PSSetSamplers(0, 1, &samplerState);
+	dxdevice_context->PSSetShaderResources(0, 1, &baseMaterial.diffuse_texture.texture_SRV);
+	dxdevice_context->PSSetShaderResources(1, 1, &baseMaterial.normal_texture.texture_SRV);
+	dxdevice_context->PSSetSamplers(0, 1, &samplerStates[samplerStateIndex]);
+	UpdateMaterialAndShininessBuffer(baseMaterial);
 
 	// Make the drawcall
 	dxdevice_context->DrawIndexed(nbr_indices, 0, 0);
 
-	//UpdateMaterialAndShininessBuffer(baseMaterial);
+}
+
+void Cube::Compute_tangentspace(Vertex& v0, Vertex& v1, Vertex& v2)
+{
+	vec3f tangent, binormal;
+	// TODO: compute tangent and binormal vectors
+	// using Lengyel’s method, as given in lecture
+
+	v0.Tangent = v1.Tangent = v2.Tangent = tangent;
+	v0.Binormal = v1.Binormal = v2.Binormal = binormal;
 }
 
 void Cube::GiveVertexValues(Vertex vertex, vec3f pos, vec3f normal, vec2f texCoord)
@@ -141,6 +153,8 @@ void Cube::CreateTriangle(int index1, int index2, int index3)
 	indices.push_back(index1);
 	indices.push_back(index2);
 	indices.push_back(index3);
+
+	Compute_tangentspace(vertices[index1], vertices[index2], vertices[index3]);
 }
 
 void Cube::AssignParent(Cube& cube)
@@ -218,11 +232,18 @@ void Cube::LoadTexture()
 	HRESULT hr;
 
 	// Load Diffuse texture
-	/*if (baseMaterial.Kd_texture_filename.size())
+	std::cout << "BASE MATERIAL TEXTURE FILE NAME: " << baseMaterial.Kd_texture_filename << std::endl;
+	if (baseMaterial.Kd_texture_filename.size())
 	{
 		std::cout << "ADDING TEXTURE TO BOX" << std::endl;
 		hr = LoadTextureFromFile(dxdevice, baseMaterial.Kd_texture_filename.c_str(), &baseMaterial.diffuse_texture);
 		std::cout << "\t" << baseMaterial.Kd_texture_filename.c_str() << (SUCCEEDED(hr) ? " - OK" : "- FAILED") << std::endl;
-	}*/
+	}
 	
+	if (baseMaterial.normal_texture_filename.size())
+	{
+		std::cout << "ADDING TEXTURE TO BOX" << std::endl;
+		hr = LoadTextureFromFile(dxdevice, baseMaterial.normal_texture_filename.c_str(), &baseMaterial.normal_texture);
+		std::cout << "\t" << baseMaterial.normal_texture_filename.c_str() << (SUCCEEDED(hr) ? " - OK" : "- FAILED") << std::endl;
+	}
 }

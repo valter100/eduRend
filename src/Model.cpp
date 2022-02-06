@@ -7,9 +7,10 @@
 #include "Model.h"
 
 Model::Model(ID3D11Device* dxdevice, ID3D11DeviceContext* dxdevice_context) : dxdevice(dxdevice), dxdevice_context(dxdevice_context)
-{
-	//InitMaterialAndShininessBuffer();
-	//CreateSamplerState();
+{ 
+	InitMaterialAndShininessBuffer();
+	CreateSamplerState();
+	shininess = 5.0f;
 }
 
 void Model::CreateSamplerState()
@@ -31,6 +32,8 @@ void Model::CreateSamplerState()
 	};
 	ASSERT(hr = dxdevice->CreateSamplerState(&sd, &samplerState));
 
+	samplerStates.push_back(samplerState);
+
 	D3D11_SAMPLER_DESC sd2 =
 	{
 		D3D11_FILTER_ANISOTROPIC,
@@ -46,6 +49,8 @@ void Model::CreateSamplerState()
 	};
 	ASSERT(hr = dxdevice->CreateSamplerState(&sd2, &samplerState2));
 
+	samplerStates.push_back(samplerState2);
+
 	D3D11_SAMPLER_DESC sd3 =
 	{
 		D3D11_FILTER_ANISOTROPIC,
@@ -60,6 +65,59 @@ void Model::CreateSamplerState()
 		FLT_MAX,
 	};
 	ASSERT(hr = dxdevice->CreateSamplerState(&sd3, &samplerState3));
+
+	samplerStates.push_back(samplerState3);
+
+	D3D11_SAMPLER_DESC sd4 =
+	{
+		D3D11_FILTER_MIN_MAG_MIP_POINT,
+		D3D11_TEXTURE_ADDRESS_WRAP,
+		D3D11_TEXTURE_ADDRESS_WRAP,
+		D3D11_TEXTURE_ADDRESS_WRAP,
+		0.0f,
+		16,
+		D3D11_COMPARISON_NEVER,
+		{1.0f, 1.0f, 1.0f, 1.0f },
+		-FLT_MAX,
+		FLT_MAX,
+	};
+	ASSERT(hr = dxdevice->CreateSamplerState(&sd4, &samplerState4));
+
+	samplerStates.push_back(samplerState4);
+
+	D3D11_SAMPLER_DESC sd5 =
+	{
+		D3D11_FILTER_MIN_MAG_MIP_LINEAR,
+		D3D11_TEXTURE_ADDRESS_WRAP,
+		D3D11_TEXTURE_ADDRESS_WRAP,
+		D3D11_TEXTURE_ADDRESS_WRAP,
+		0.0f,
+		16,
+		D3D11_COMPARISON_NEVER,
+		{1.0f, 1.0f, 1.0f, 1.0f },
+		-FLT_MAX,
+		FLT_MAX,
+	};
+	ASSERT(hr = dxdevice->CreateSamplerState(&sd5, &samplerState5));
+
+	samplerStates.push_back(samplerState5);
+
+	D3D11_SAMPLER_DESC sd6 =
+	{
+		D3D11_FILTER_ANISOTROPIC,
+		D3D11_TEXTURE_ADDRESS_WRAP,
+		D3D11_TEXTURE_ADDRESS_WRAP,
+		D3D11_TEXTURE_ADDRESS_WRAP,
+		0.0f,
+		16,
+		D3D11_COMPARISON_NEVER,
+		{1.0f, 1.0f, 1.0f, 1.0f },
+		-FLT_MAX,
+		FLT_MAX,
+	};
+	ASSERT(hr = dxdevice->CreateSamplerState(&sd6, &samplerState6));
+
+	samplerStates.push_back(samplerState6);
 }
 
 void Model::InitMaterialAndShininessBuffer()
@@ -82,8 +140,97 @@ void Model::UpdateMaterialAndShininessBuffer(Material material) const
 	MaterialAndShininessBuffer* matAndShineBuffer = (MaterialAndShininessBuffer*)resource.pData;
 	matAndShineBuffer->Ambient = vec4f(material.Ka, 0);
 	matAndShineBuffer->Diffuse = vec4f(material.Kd, 0);
-	matAndShineBuffer->Specular = vec4f(material.Ks, material.Shininess);
+	matAndShineBuffer->Specular = vec4f(material.Ks, shininess);
 	dxdevice_context->Unmap(materialAndShininessBuffer, 0);
+}
+
+void Model::SetBasicMaterialValues(vec3f ka, vec3f kd, vec3f ks, float shininess)
+{
+	baseMaterial.Ka = ka;
+	baseMaterial.Kd = kd;
+	baseMaterial.Ks = ks;
+	baseMaterial.Shininess = shininess;
+}
+
+void Model::Compute_tangentspace(Vertex& v0, Vertex& v1, Vertex& v2)
+{
+	vec3f tangent, binormal;
+	// TODO: compute tangent and binormal vectors
+	// using Lengyel’s method, as given in lecture
+
+	vec3f D = v1.Pos - v0.Pos; //Q1
+	vec3f E = v2.Pos - v0.Pos; //Q2
+
+	vec2f F = v1.TexCoord - v0.TexCoord; //S1, T1
+	vec2f G = v2.TexCoord - v0.TexCoord; //S2, T2
+
+	D = tangent*F.x + binormal*F.y; //Q1
+	E = tangent*G.x + binormal*G.y; //Q2
+
+	mat2f FG = { (F.x, F.y), (G.x, G.y) };
+
+	mat3f DE = { (D.x, D.y, D.z), (E.x, E.y, E.z), (1,1,1) };
+	mat2f GF = FG.invert();
+
+	//vec3f DEGF[2][3] = {
+	//	vec3f(GF.m11 * DE.m11 + GF.m12 * DE.m21,
+	//	 GF.m11 * DE.m12 + GF.m11 * DE.m22,
+	//	 GF.m11 * DE.m13 + GF.m12 * DE.m23),
+	//	vec3f(GF.m21 * DE.m11 + GF.m21 * DE.m21,
+	//	 GF.m21 * DE.m11 + GF.m22 * DE.m21,
+	//	 GF.m21 * DE.m13 + GF.m22 * DE.m23) };
+
+	//mat3f DEGF = { 
+	//	(GF.m11 * DE.m11 + GF.m12 * DE.m21, 
+	//	 GF.m11 * DE.m12 + GF.m11 * DE.m22, 
+	//	 GF.m11 * DE.m13 + GF.m12 * DE.m23), 
+	//	(GF.m21 * DE.m11 + GF.m21 * DE.m21,
+	//	 GF.m21 * DE.m11 + GF.m22 * DE.m21,
+	//	 GF.m21 * DE.m13 + GF.m22 * DE.m23),
+	//	 (1,1,1)
+	//};
+
+	float inverseFG = (1 / ((F.x * G.y) - (F.y * G.x)));
+
+	//Matris till vänster tar man rad * column 
+
+	float tx = inverseFG * (GF.m11 * DE.m11 + GF.m12 * DE.m21);
+	float ty = inverseFG * (GF.m11 * DE.m12 + GF.m12 * DE.m22);
+	float tz = inverseFG * (GF.m11 * DE.m13 + GF.m12 * DE.m23);
+
+	float bx = inverseFG * (GF.m21 * DE.m11 + GF.m22 * DE.m21);
+	float by = inverseFG * (GF.m21 * DE.m12 + GF.m22 * DE.m22);
+	float bz = inverseFG * (GF.m11 * DE.m13 + GF.m22 * DE.m23);
+
+	tangent = vec3f(tx, ty, tz);
+	binormal = vec3f(bx, by, bz);
+
+	//tangent.normalize();
+	//binormal.normalize();
+
+	v0.Tangent = v1.Tangent = v2.Tangent = tangent;
+	v0.Binormal = v1.Binormal = v2.Binormal = binormal;
+}
+
+void Model::ChangeSamplerState(const float change)
+{
+	samplerStateIndex += change;
+
+	if (samplerStateIndex >= samplerStates.size())
+	{
+		samplerStateIndex = 0;
+	}
+	else if (samplerStateIndex < 0)
+	{
+		samplerStateIndex = samplerStates.size() - 1;
+	}
+
+	std::cout << samplerStateIndex << std::endl;
+}
+
+ID3D11SamplerState* Model::GetCurrentSamplerState()
+{
+	return samplerStates[samplerStateIndex];
 }
 
 QuadModel::QuadModel(
@@ -131,28 +278,28 @@ QuadModel::QuadModel(
 	vbufferDesc.CPUAccessFlags = 0;
 	vbufferDesc.Usage = D3D11_USAGE_DEFAULT;
 	vbufferDesc.MiscFlags = 0;
-	vbufferDesc.ByteWidth = (UINT)(vertices.size() * sizeof(Vertex));
+	vbufferDesc.ByteWidth = (UINT)(vertices.size()*sizeof(Vertex));
 	// Data resource
 	D3D11_SUBRESOURCE_DATA vdata;
 	vdata.pSysMem = &vertices[0];
 	// Create vertex buffer on device using descriptor & data
 	const HRESULT vhr = dxdevice->CreateBuffer(&vbufferDesc, &vdata, &vertex_buffer);
 	SETNAME(vertex_buffer, "VertexBuffer");
-
+    
 	//  Index array descriptor
 	D3D11_BUFFER_DESC ibufferDesc = { 0 };
 	ibufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
 	ibufferDesc.CPUAccessFlags = 0;
 	ibufferDesc.Usage = D3D11_USAGE_DEFAULT;
 	ibufferDesc.MiscFlags = 0;
-	ibufferDesc.ByteWidth = (UINT)(indices.size() * sizeof(unsigned));
+	ibufferDesc.ByteWidth = (UINT)(indices.size()*sizeof(unsigned));
 	// Data resource
 	D3D11_SUBRESOURCE_DATA idata;
 	idata.pSysMem = &indices[0];
 	// Create index buffer on device using descriptor & data
 	const HRESULT ihr = dxdevice->CreateBuffer(&ibufferDesc, &idata, &index_buffer);
 	SETNAME(index_buffer, "IndexBuffer");
-
+    
 	nbr_indices = (unsigned int)indices.size();
 }
 
@@ -166,7 +313,6 @@ void QuadModel::Render() const
 
 	// Bind our index buffer
 	dxdevice_context->IASetIndexBuffer(index_buffer, DXGI_FORMAT_R32_UINT, 0);
-	dxdevice_context->PSSetConstantBuffers(1, 1, &materialAndShininessBuffer);
 
 	// Make the drawcall
 	dxdevice_context->DrawIndexed(nbr_indices, 0, 0);
@@ -182,6 +328,7 @@ OBJModel::OBJModel(
 	// Load the OBJ
 	OBJLoader* mesh = new OBJLoader();
 	mesh->Load(objfile);
+
 	// Load and organize indices in ranges per drawcall (material)
 
 	std::vector<unsigned> indices;
@@ -191,7 +338,9 @@ OBJModel::OBJModel(
 	{
 		// Append the drawcall indices
 		for (auto& tri : dc.tris)
+		{
 			indices.insert(indices.end(), tri.vi, tri.vi + 3);
+		}
 
 		// Create a range
 		unsigned int i_size = (unsigned int)dc.tris.size() * 3;
@@ -207,51 +356,81 @@ OBJModel::OBJModel(
 	vbufferDesc.CPUAccessFlags = 0;
 	vbufferDesc.Usage = D3D11_USAGE_DEFAULT;
 	vbufferDesc.MiscFlags = 0;
-	vbufferDesc.ByteWidth = (UINT)(mesh->vertices.size() * sizeof(Vertex));
+	vbufferDesc.ByteWidth = (UINT)(mesh->vertices.size()*sizeof(Vertex));
 	// Data resource
 	D3D11_SUBRESOURCE_DATA vdata;
 	vdata.pSysMem = &(mesh->vertices)[0];
 	// Create vertex buffer on device using descriptor & data
 	HRESULT vhr = dxdevice->CreateBuffer(&vbufferDesc, &vdata, &vertex_buffer);
 	SETNAME(vertex_buffer, "VertexBuffer");
-
+    
 	// Index array descriptor
 	D3D11_BUFFER_DESC ibufferDesc = { 0 };
 	ibufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
 	ibufferDesc.CPUAccessFlags = 0;
 	ibufferDesc.Usage = D3D11_USAGE_DEFAULT;
 	ibufferDesc.MiscFlags = 0;
-	ibufferDesc.ByteWidth = (UINT)(indices.size() * sizeof(unsigned));
+	ibufferDesc.ByteWidth = (UINT)(indices.size()*sizeof(unsigned));
 	// Data resource
 	D3D11_SUBRESOURCE_DATA idata;
 	idata.pSysMem = &indices[0];
 	// Create index buffer on device using descriptor & data
 	HRESULT ihr = dxdevice->CreateBuffer(&ibufferDesc, &idata, &index_buffer);
 	SETNAME(index_buffer, "IndexBuffer");
+    
+	for (int i = 0; i < indices.size(); i += 3) // For all triangles
+		Model::Compute_tangentspace(
+			mesh->vertices[indices[i + 0]],
+			mesh->vertices[indices[i + 1]],
+			mesh->vertices[indices[i + 2]]
+		);
 
 	// Copy materials from mesh
 	append_materials(mesh->materials);
 
+	std::string objectMapPath;
+	size_t pos = objfile.rfind("/");
+
+	if (pos != std::string::npos)
+		objectMapPath = objfile.substr(0, pos + 1);
+
+	baseMaterial.Kd_texture_filename = objectMapPath + "diffuseColor.jpg";
+	//baseMaterial.normal_texture_filename = objectMapPath + "normalMap.png";
+	baseMaterial.normal_texture_filename = "assets/objects/sphere/normalMap.png";
+	
+	std::cout << "LOOKING FOR DIFFUSE TEX IN: " << baseMaterial.Kd_texture_filename << std::endl;
+
+
 	// Go through materials and load textures (if any) to device
 	std::cout << "Loading textures..." << std::endl;
-	for (Material mtl : materials)
+	for (auto& mtl : materials)
 	{
 		HRESULT hr;
 
 		// Load Diffuse texture
+		//
 		if (mtl.Kd_texture_filename.size()) 
 		{
 			hr = LoadTextureFromFile(dxdevice, mtl.Kd_texture_filename.c_str(), &mtl.diffuse_texture);
 			std::cout << "\t" << mtl.Kd_texture_filename << (SUCCEEDED(hr) ? " - OK" : "- FAILED") << std::endl;
 		}
+		else
+		{
+			hr = LoadTextureFromFile(dxdevice, baseMaterial.Kd_texture_filename.c_str(), &mtl.diffuse_texture);
+		}
 
 		// Load Normal texture
-		//if (mtl.normal_texture_filename.size())
-		//{
-		//	hr = LoadTextureFromFile(dxdevice, mtl.normal_texture_filename.c_str(), &mtl.normal_texture);
-		//	std::cout << "\t" << mtl.normal_texture_filename << (SUCCEEDED(hr) ? " - OK" : "- FAILED") << std::endl;
-		//}
+		if (mtl.normal_texture_filename.size())
+		{
+			hr = LoadTextureFromFile(dxdevice, mtl.normal_texture_filename.c_str(), &mtl.normal_texture);
+			std::cout << "\t" << mtl.normal_texture_filename << (SUCCEEDED(hr) ? " - OK" : "- FAILED") << std::endl;
+		}
+		else 
+		{
+			hr = LoadTextureFromFile(dxdevice, baseMaterial.normal_texture_filename.c_str(), &mtl.normal_texture);
+		}
 	}
+
 	std::cout << "Done." << std::endl;
 
 	SAFE_DELETE(mesh);
@@ -269,26 +448,27 @@ void OBJModel::Render() const
 	dxdevice_context->IASetIndexBuffer(index_buffer, DXGI_FORMAT_R32_UINT, 0);
 	dxdevice_context->PSSetConstantBuffers(1, 1, &materialAndShininessBuffer);
 
-
 	// Iterate drawcalls
 	for (auto& irange : index_ranges)
 	{
 		// Fetch material
 		const Material& mtl = materials[irange.mtl_index];
 
+		if (materials.size() == 0)
+		{
+			const Material& mtl = baseMaterial;
+		}
+
 		// Bind diffuse texture to slot t0 of the PS
-		dxdevice_context->PSSetShaderResources(0, 1, &mtl.diffuse_texture.texture_SRV); //Massor av frågor hehe
-		//dxdevice_context->PSSetShaderResources(1, 1, &mtl.normal_texture.texture_SRV);
-		//dxdevice_context->PSSetSamplers(0, 1, &samplerState);
-		
-		//UpdateMaterialAndShininessBuffer(mtl);
-		
-		// + bind other textures here, e.g. a normal map, to appropriate slots
+		dxdevice_context->PSSetShaderResources(0, 1, &mtl.diffuse_texture.texture_SRV);
+		dxdevice_context->PSSetShaderResources(1, 1, &mtl.normal_texture.texture_SRV);
+		dxdevice_context->PSSetSamplers(0, 1, &samplerStates[samplerStateIndex]);
+
+		UpdateMaterialAndShininessBuffer(mtl);
 
 		// Make the drawcall
 		dxdevice_context->DrawIndexed(irange.size, irange.start, 0);
 	}
-
 }
 
 OBJModel::~OBJModel()
@@ -301,6 +481,3 @@ OBJModel::~OBJModel()
 	}
 	SAFE_RELEASE(samplerState);
 }
-
-
-

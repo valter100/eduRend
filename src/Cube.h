@@ -23,9 +23,6 @@ public:
 			,v501, v502, v503, v504
 			,v601, v602, v603, v604;
 
-
-	//Material baseMaterial;
-
 	Cube(ID3D11Device*, ID3D11DeviceContext*, Cube*);
 	~Cube() {};
 	void Render() const; //Override from model?
@@ -50,6 +47,7 @@ public:
 	void SetTransformMatrix(mat4f _transformMatrix);
 	mat4f GetTransformMatrix();
 
+	void Compute_tangentspace(Vertex& v0, Vertex& v1, Vertex& v2);
 	void LoadTexture();
 }
 ;

@@ -27,6 +27,7 @@ protected:
 	ID3D11DeviceContext*	dxdevice_context;
 	int						window_width;
 	int						window_height;
+	std::vector<Model*> models;
 
 public:
 
