@@ -411,23 +411,23 @@ OBJModel::OBJModel(
 		//
 		if (mtl.Kd_texture_filename.size()) 
 		{
-			hr = LoadTextureFromFile(dxdevice, mtl.Kd_texture_filename.c_str(), &mtl.diffuse_texture);
+			hr = LoadTextureFromFile(dxdevice, dxdevice_context, mtl.Kd_texture_filename.c_str(), &mtl.diffuse_texture);
 			std::cout << "\t" << mtl.Kd_texture_filename << (SUCCEEDED(hr) ? " - OK" : "- FAILED") << std::endl;
 		}
 		else
 		{
-			hr = LoadTextureFromFile(dxdevice, baseMaterial.Kd_texture_filename.c_str(), &mtl.diffuse_texture);
+			hr = LoadTextureFromFile(dxdevice, dxdevice_context, baseMaterial.Kd_texture_filename.c_str(), &mtl.diffuse_texture);
 		}
 
 		// Load Normal texture
 		if (mtl.normal_texture_filename.size())
 		{
-			hr = LoadTextureFromFile(dxdevice, mtl.normal_texture_filename.c_str(), &mtl.normal_texture);
+			hr = LoadTextureFromFile(dxdevice, dxdevice_context, mtl.normal_texture_filename.c_str(), &mtl.normal_texture);
 			std::cout << "\t" << mtl.normal_texture_filename << (SUCCEEDED(hr) ? " - OK" : "- FAILED") << std::endl;
 		}
 		else 
 		{
-			hr = LoadTextureFromFile(dxdevice, baseMaterial.normal_texture_filename.c_str(), &mtl.normal_texture);
+			hr = LoadTextureFromFile(dxdevice, dxdevice_context, baseMaterial.normal_texture_filename.c_str(), &mtl.normal_texture);
 		}
 	}
 

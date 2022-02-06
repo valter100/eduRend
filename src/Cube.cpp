@@ -236,14 +236,14 @@ void Cube::LoadTexture()
 	if (baseMaterial.Kd_texture_filename.size())
 	{
 		std::cout << "ADDING TEXTURE TO BOX" << std::endl;
-		hr = LoadTextureFromFile(dxdevice, baseMaterial.Kd_texture_filename.c_str(), &baseMaterial.diffuse_texture);
+		hr = LoadTextureFromFile(dxdevice, dxdevice_context, baseMaterial.Kd_texture_filename.c_str(), &baseMaterial.diffuse_texture);
 		std::cout << "\t" << baseMaterial.Kd_texture_filename.c_str() << (SUCCEEDED(hr) ? " - OK" : "- FAILED") << std::endl;
 	}
 	
 	if (baseMaterial.normal_texture_filename.size())
 	{
 		std::cout << "ADDING TEXTURE TO BOX" << std::endl;
-		hr = LoadTextureFromFile(dxdevice, baseMaterial.normal_texture_filename.c_str(), &baseMaterial.normal_texture);
+		hr = LoadTextureFromFile(dxdevice, dxdevice_context, baseMaterial.normal_texture_filename.c_str(), &baseMaterial.normal_texture);
 		std::cout << "\t" << baseMaterial.normal_texture_filename.c_str() << (SUCCEEDED(hr) ? " - OK" : "- FAILED") << std::endl;
 	}
 }

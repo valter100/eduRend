@@ -27,10 +27,10 @@ OurTestScene::OurTestScene(
 	int window_height) :
 	Scene(dxdevice, dxdevice_context, window_width, window_height)
 {
-	source1 = new Light(vec3f(0, -0.0f, -20), true, dxdevice, dxdevice_context);
-	source1->AddAnimationPath(vec3f(6, -0.0f, -6.0f));
-	source1->AddAnimationPath(vec3f(0, -0.0f, 8));
-	source1->AddAnimationPath(vec3f(-6, -0.0f, -6.0f));
+	source1 = new Light(vec3f(0, -0.0f, -22), true, dxdevice, dxdevice_context);
+	source1->AddAnimationPath(vec3f(6, -0.0f, -8.0f));
+	source1->AddAnimationPath(vec3f(0, -0.0f, 6));
+	source1->AddAnimationPath(vec3f(-6, -0.0f, -8.0f));
 
 	source2 = new Light(vec3f(0, 20, -30), true, dxdevice, dxdevice_context);
 	source2->AddAnimationPath(vec3f(0, -5, -30));
@@ -48,7 +48,7 @@ void OurTestScene::Init()
 	camera = new Camera(
 		45.0f * fTO_RAD,		// field-of-view (radians)
 		(float)window_width / window_height,	// aspect ratio
-		1.0f,					// z-near plane (everything closer will be clipped/removed)
+		0.5f,					// z-near plane (everything closer will be clipped/removed)
 		500.0f);				// z-far plane (everything further will be clipped/removed)
 
 	// Move camera to (0,0,5)

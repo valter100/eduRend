@@ -44,12 +44,12 @@ float4 PS_main(PSIn input) : SV_Target
 	float3 WorldNormal = mul(TBN, NormalTexColor.xyz);
 
 	float3 LightVector1 = normalize(LightPosition1 - input.WorldPos);
-	//float3 ReflectVector1 = normalize(reflect(-LightVector1, input.Normal));
-	float3 ReflectVector1 = normalize(reflect(LightVector1, WorldNormal));
+	float3 ReflectVector1 = normalize(reflect(-LightVector1, input.Normal));
+	//float3 ReflectVector1 = normalize(reflect(LightVector1, WorldNormal));
 
 	float3 LightVector2 = normalize(LightPosition2 - input.WorldPos);
-	//float3 ReflectVector2 = normalize(reflect(LightVector2, input.Normal));
-	float3 ReflectVector2 = normalize(reflect(LightVector2, WorldNormal));
+	float3 ReflectVector2 = normalize(reflect(LightVector2, input.Normal));
+	//float3 ReflectVector2 = normalize(reflect(LightVector2, WorldNormal));
 
 	float3 ViewVector = normalize(CamPosition - input.WorldPos);
 
