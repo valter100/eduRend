@@ -6,10 +6,11 @@
 
 Camera::Camera(float vfov, float aspect, float zNear, float zFar) : vfov(vfov), aspect(aspect), zNear(zNear), zFar(zFar)
 {
-	//rotationSpeed = 0.002; //slow
 	rotationSpeed = 0.003; //fast
 	position = { 0.0f, 0.0f, 0.0f };
 	rotation = { 1.0f, 1.0f, 1.0f, 1 };
+	this->zNear = zNear;
+	this->zFar = zFar;
 	mousedX = 0;
 	mousedY = 0;
 	currentPrePosIndex = 0;

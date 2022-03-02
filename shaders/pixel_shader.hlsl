@@ -1,7 +1,9 @@
 
 Texture2D texDiffuse : register(t0);
 Texture2D texNormal : register(t1);
+TextureCube texCube : register (t2);
 SamplerState texSampler : register(s0);
+SamplerState cubeSampler : register(s1);
 
 struct PSIn
 {
@@ -16,8 +18,7 @@ struct PSIn
 cbuffer CameraAndLightBuffer : register(b0)
 {
 	float3 CamPosition;
-	float3 LightPosition1;
-	float3 LightPosition2;
+	float4 LightPositions[2];
 };
 
 cbuffer MaterialAndShininessBuffer : register(b1)
@@ -30,40 +31,68 @@ cbuffer MaterialAndShininessBuffer : register(b1)
 //-----------------------------------------------------------------------------------------
 // Pixel Shader
 //-----------------------------------------------------------------------------------------
-//
 
 float4 PS_main(PSIn input) : SV_Target
 {
-	float4 DiffuseTexColor = texDiffuse.Sample(texSampler, input.TexCoord);
-	float4 NormalTexColor = texNormal.Sample(texSampler, input.TexCoord);
+	//Phong effect components: Ambient, Diffuse & Specular
+	//--------------------------------------------------------------------------------------------------------
+
+	float3 A; //Ambience
+	float3 D; //Diffuse
+	float3 S; //Specular
+
+	//Get Texture values from Input Textures: Diffuse & Normal
+	//--------------------------------------------------------------------------------------------------------
+
+	float4 DiffuseTexColor = texDiffuse.Sample(texSampler, input.TexCoord); //Color values
+	float4 NormalTexVector = texNormal.Sample(texSampler, input.TexCoord) * 2 - 1; //Vector values
+
+	//Calculating TBN-matrix from each vertex's Tangent, Binormal & Normal
+	//--------------------------------------------------------------------------------------------------------
 
 	float3 T = normalize(input.Tangent);
 	float3 B = normalize(input.Binormal);
 	float3 N = normalize(input.Normal);
 	float3x3 TBN = transpose(float3x3(T,B,N));
-	float3 WorldNormal = mul(TBN, NormalTexColor.xyz);
+	float3 WorldNormal = mul(TBN, NormalTexVector.xyz);
 
-	float3 LightVector1 = normalize(LightPosition1 - input.WorldPos);
-	float3 ReflectVector1 = normalize(reflect(-LightVector1, input.Normal));
-	//float3 ReflectVector1 = normalize(reflect(LightVector1, WorldNormal));
+	//Cube Mapping & Reflection Vector Calculations:
+	//--------------------------------------------------------------------------------------------------------
+	
+	float3 ViewVector = normalize(input.WorldPos - CamPosition);
+	float3 ReflectVector = normalize(reflect(ViewVector, WorldNormal));
+	float4 CubeTexVector = texCube.Sample(cubeSampler, ReflectVector);
 
-	float3 LightVector2 = normalize(LightPosition2 - input.WorldPos);
-	float3 ReflectVector2 = normalize(reflect(LightVector2, input.Normal));
-	//float3 ReflectVector2 = normalize(reflect(LightVector2, WorldNormal));
+	//light Vector Calculations: Light & Reflection with Diffuse & Specular components
+	//--------------------------------------------------------------------------------------------------------
 
-	float3 ViewVector = normalize(CamPosition - input.WorldPos);
+	float3 LightSum;
+	float count = LightPositions[0].w;
 
 	float Shininess = Specular.w;
 
-	//float3 LightSum = 
-	//	(mul(DiffuseTexColor.xyz, dot(LightVector1, input.Normal) + mul(Specular.xyz, pow(max(dot(ReflectVector1, ViewVector), 0), Shininess))) +
-	//	(mul(DiffuseTexColor.xyz, dot(LightVector2, input.Normal)) + mul(Specular.xyz, pow(max(dot(ReflectVector2, ViewVector), 0), Shininess))));
+	for (int i = 0; i < count; i++)
+	{
+		float3 LightDistance = LightPositions[i].xyz - input.WorldPos; //attenuation
+		float3 LightVector = normalize(LightDistance);
+		float3 LightReflectVector = normalize(reflect(LightVector, WorldNormal)); //With normal mapping
+		
+		//float3 SpecularReflection = mul(Specular.xyz, CubeTexVector.xyz); // * or mul()?
+		float3 SpecularReflection = Specular.xyz * CubeTexVector.xyz; // * or mul()?
+		
+		D = mul(DiffuseTexColor.xyz, max(dot(LightVector, WorldNormal),0)); //With normal mapping (should input.Normal be WorldNormal?), Wack because not all models have normal tex?
+        S = mul(Specular.xyz, pow(max(dot(LightReflectVector, ViewVector), 0), Shininess));
 
-	float3 A = Ambient.xyz;
-	float3 D = mul(DiffuseTexColor.xyz, dot(LightVector1, input.Normal));
-	//float3 D = mul(DiffuseTexColor.xyz, dot(LightVector1, WorldNormal)); // Normal Map included
-	float3 S = mul(Specular.xyz, pow(max(dot(ReflectVector1, ViewVector), 0), Shininess));
+		LightSum += D + S;
+	}
+	
+	//Ambience
+	//--------------------------------------------------------------------------------------------------------
 
-	//return float4(S,1);
-	return float4(A * 0.25f + D + S, 1); //one light source + diffuse texture
+	A = Ambient.xyz;
+
+	//Final Calculation taking all components into account
+	//--------------------------------------------------------------------------------------------------------
+
+	return float4(A * 0.25f + LightSum, 1); //support multiple light sources + diffuse texture and normal maps
 }

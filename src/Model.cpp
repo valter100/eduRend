@@ -7,118 +7,14 @@
 #include "Model.h"
 
 Model::Model(ID3D11Device* dxdevice, ID3D11DeviceContext* dxdevice_context) : dxdevice(dxdevice), dxdevice_context(dxdevice_context)
-{ 
-	InitMaterialAndShininessBuffer();
-	CreateSamplerState();
-	shininess = 5.0f;
-}
-
-void Model::CreateSamplerState()
 {
-	HRESULT hr;
+	InitMaterialAndShininessBuffer();
 
-	D3D11_SAMPLER_DESC sd =
-	{
-		D3D11_FILTER_ANISOTROPIC,
-		D3D11_TEXTURE_ADDRESS_WRAP,
-		D3D11_TEXTURE_ADDRESS_WRAP,
-		D3D11_TEXTURE_ADDRESS_WRAP,
-		0.0f,
-		16,
-		D3D11_COMPARISON_NEVER,
-		{1.0f, 1.0f, 1.0f, 1.0f },
-		-FLT_MAX,
-		FLT_MAX,
-	};
-	ASSERT(hr = dxdevice->CreateSamplerState(&sd, &samplerState));
-
-	samplerStates.push_back(samplerState);
-
-	D3D11_SAMPLER_DESC sd2 =
-	{
-		D3D11_FILTER_ANISOTROPIC,
-		D3D11_TEXTURE_ADDRESS_MIRROR,
-		D3D11_TEXTURE_ADDRESS_MIRROR,
-		D3D11_TEXTURE_ADDRESS_WRAP,
-		0.0f,
-		16,
-		D3D11_COMPARISON_NEVER,
-		{1.0f, 1.0f, 1.0f, 1.0f },
-		-FLT_MAX,
-		FLT_MAX,
-	};
-	ASSERT(hr = dxdevice->CreateSamplerState(&sd2, &samplerState2));
-
-	samplerStates.push_back(samplerState2);
-
-	D3D11_SAMPLER_DESC sd3 =
-	{
-		D3D11_FILTER_ANISOTROPIC,
-		D3D11_TEXTURE_ADDRESS_CLAMP,
-		D3D11_TEXTURE_ADDRESS_CLAMP,
-		D3D11_TEXTURE_ADDRESS_WRAP,
-		0.0f,
-		16,
-		D3D11_COMPARISON_NEVER,
-		{1.0f, 1.0f, 1.0f, 1.0f },
-		-FLT_MAX,
-		FLT_MAX,
-	};
-	ASSERT(hr = dxdevice->CreateSamplerState(&sd3, &samplerState3));
-
-	samplerStates.push_back(samplerState3);
-
-	D3D11_SAMPLER_DESC sd4 =
-	{
-		D3D11_FILTER_MIN_MAG_MIP_POINT,
-		D3D11_TEXTURE_ADDRESS_WRAP,
-		D3D11_TEXTURE_ADDRESS_WRAP,
-		D3D11_TEXTURE_ADDRESS_WRAP,
-		0.0f,
-		16,
-		D3D11_COMPARISON_NEVER,
-		{1.0f, 1.0f, 1.0f, 1.0f },
-		-FLT_MAX,
-		FLT_MAX,
-	};
-	ASSERT(hr = dxdevice->CreateSamplerState(&sd4, &samplerState4));
-
-	samplerStates.push_back(samplerState4);
-
-	D3D11_SAMPLER_DESC sd5 =
-	{
-		D3D11_FILTER_MIN_MAG_MIP_LINEAR,
-		D3D11_TEXTURE_ADDRESS_WRAP,
-		D3D11_TEXTURE_ADDRESS_WRAP,
-		D3D11_TEXTURE_ADDRESS_WRAP,
-		0.0f,
-		16,
-		D3D11_COMPARISON_NEVER,
-		{1.0f, 1.0f, 1.0f, 1.0f },
-		-FLT_MAX,
-		FLT_MAX,
-	};
-	ASSERT(hr = dxdevice->CreateSamplerState(&sd5, &samplerState5));
-
-	samplerStates.push_back(samplerState5);
-
-	D3D11_SAMPLER_DESC sd6 =
-	{
-		D3D11_FILTER_ANISOTROPIC,
-		D3D11_TEXTURE_ADDRESS_WRAP,
-		D3D11_TEXTURE_ADDRESS_WRAP,
-		D3D11_TEXTURE_ADDRESS_WRAP,
-		0.0f,
-		16,
-		D3D11_COMPARISON_NEVER,
-		{1.0f, 1.0f, 1.0f, 1.0f },
-		-FLT_MAX,
-		FLT_MAX,
-	};
-	ASSERT(hr = dxdevice->CreateSamplerState(&sd6, &samplerState6));
-
-	samplerStates.push_back(samplerState6);
+	baseMaterial.Kd_texture_filename = "assets/textures/diffuseColor.jpg";
+	baseMaterial.normal_texture_filename = "assets/textures/normalMap.png";
 }
+
+
 
 void Model::InitMaterialAndShininessBuffer()
 {
@@ -140,7 +36,7 @@ void Model::UpdateMaterialAndShininessBuffer(Material material) const
 	MaterialAndShininessBuffer* matAndShineBuffer = (MaterialAndShininessBuffer*)resource.pData;
 	matAndShineBuffer->Ambient = vec4f(material.Ka, 0);
 	matAndShineBuffer->Diffuse = vec4f(material.Kd, 0);
-	matAndShineBuffer->Specular = vec4f(material.Ks, shininess);
+	matAndShineBuffer->Specular = vec4f(material.Ks, material.Shininess);
 	dxdevice_context->Unmap(materialAndShininessBuffer, 0);
 }
 
@@ -154,83 +50,40 @@ void Model::SetBasicMaterialValues(vec3f ka, vec3f kd, vec3f ks, float shininess
 
 void Model::Compute_tangentspace(Vertex& v0, Vertex& v1, Vertex& v2)
 {
-	vec3f tangent, binormal;
-	// TODO: compute tangent and binormal vectors
-	// using Lengyel’s method, as given in lecture
+	float tx, ty, tz;
+	float bx, by, bz;
 
-	vec3f D = v1.Pos - v0.Pos; //Q1
-	vec3f E = v2.Pos - v0.Pos; //Q2
+	vec3f D = v1.Pos - v0.Pos;
+	vec3f E = v2.Pos - v0.Pos;
 
-	vec2f F = v1.TexCoord - v0.TexCoord; //S1, T1
-	vec2f G = v2.TexCoord - v0.TexCoord; //S2, T2
+	vec2f F = v1.TexCoord - v0.TexCoord;
+	vec2f G = v2.TexCoord - v0.TexCoord;
 
-	D = tangent*F.x + binormal*F.y; //Q1
-	E = tangent*G.x + binormal*G.y; //Q2
+	float inverseFG = (1 / (F.x * G.y - F.y * G.x));
 
-	mat2f FG = { (F.x, F.y), (G.x, G.y) };
+	tx = inverseFG * (G.y * D.x - F.y * E.x);
+	ty = inverseFG * (G.y * D.y - F.y * E.y);
+	tz = inverseFG * (G.y * D.z - F.y * E.z);
 
-	mat3f DE = { (D.x, D.y, D.z), (E.x, E.y, E.z), (1,1,1) };
-	mat2f GF = FG.invert();
+	bx = inverseFG * (-G.x * D.x + F.x * E.x);
+	by = inverseFG * (-G.x * D.y + F.x * E.y);
+	bz = inverseFG * (-G.x * D.z + F.x * E.z);
 
-	//vec3f DEGF[2][3] = {
-	//	vec3f(GF.m11 * DE.m11 + GF.m12 * DE.m21,
-	//	 GF.m11 * DE.m12 + GF.m11 * DE.m22,
-	//	 GF.m11 * DE.m13 + GF.m12 * DE.m23),
-	//	vec3f(GF.m21 * DE.m11 + GF.m21 * DE.m21,
-	//	 GF.m21 * DE.m11 + GF.m22 * DE.m21,
-	//	 GF.m21 * DE.m13 + GF.m22 * DE.m23) };
-
-	//mat3f DEGF = { 
-	//	(GF.m11 * DE.m11 + GF.m12 * DE.m21, 
-	//	 GF.m11 * DE.m12 + GF.m11 * DE.m22, 
-	//	 GF.m11 * DE.m13 + GF.m12 * DE.m23), 
-	//	(GF.m21 * DE.m11 + GF.m21 * DE.m21,
-	//	 GF.m21 * DE.m11 + GF.m22 * DE.m21,
-	//	 GF.m21 * DE.m13 + GF.m22 * DE.m23),
-	//	 (1,1,1)
-	//};
-
-	float inverseFG = (1 / ((F.x * G.y) - (F.y * G.x)));
-
-	//Matris till vänster tar man rad * column 
-
-	float tx = inverseFG * (GF.m11 * DE.m11 + GF.m12 * DE.m21);
-	float ty = inverseFG * (GF.m11 * DE.m12 + GF.m12 * DE.m22);
-	float tz = inverseFG * (GF.m11 * DE.m13 + GF.m12 * DE.m23);
-
-	float bx = inverseFG * (GF.m21 * DE.m11 + GF.m22 * DE.m21);
-	float by = inverseFG * (GF.m21 * DE.m12 + GF.m22 * DE.m22);
-	float bz = inverseFG * (GF.m11 * DE.m13 + GF.m22 * DE.m23);
-
-	tangent = vec3f(tx, ty, tz);
-	binormal = vec3f(bx, by, bz);
-
-	//tangent.normalize();
-	//binormal.normalize();
+	vec3f tangent = { tx, ty, tz };
+	vec3f binormal = { bx, by, bz };
 
 	v0.Tangent = v1.Tangent = v2.Tangent = tangent;
 	v0.Binormal = v1.Binormal = v2.Binormal = binormal;
 }
 
-void Model::ChangeSamplerState(const float change)
+Material* Model::GetDefaultMaterial()
 {
-	samplerStateIndex += change;
-
-	if (samplerStateIndex >= samplerStates.size())
-	{
-		samplerStateIndex = 0;
-	}
-	else if (samplerStateIndex < 0)
-	{
-		samplerStateIndex = samplerStates.size() - 1;
-	}
-
-	std::cout << samplerStateIndex << std::endl;
+	return &baseMaterial;
 }
 
-ID3D11SamplerState* Model::GetCurrentSamplerState()
+void Model::ChangeDiffuseTexture(std::string filepath) //Remove
 {
-	return samplerStates[samplerStateIndex];
+	LoadTextureFromFile(dxdevice, dxdevice_context, filepath.c_str(), &baseMaterial.diffuse_texture);
 }
 
 QuadModel::QuadModel(
@@ -278,28 +131,28 @@ QuadModel::QuadModel(
 	vbufferDesc.CPUAccessFlags = 0;
 	vbufferDesc.Usage = D3D11_USAGE_DEFAULT;
 	vbufferDesc.MiscFlags = 0;
-	vbufferDesc.ByteWidth = (UINT)(vertices.size()*sizeof(Vertex));
+	vbufferDesc.ByteWidth = (UINT)(vertices.size() * sizeof(Vertex));
 	// Data resource
 	D3D11_SUBRESOURCE_DATA vdata;
 	vdata.pSysMem = &vertices[0];
 	// Create vertex buffer on device using descriptor & data
 	const HRESULT vhr = dxdevice->CreateBuffer(&vbufferDesc, &vdata, &vertex_buffer);
 	SETNAME(vertex_buffer, "VertexBuffer");
-    
+
 	//  Index array descriptor
 	D3D11_BUFFER_DESC ibufferDesc = { 0 };
 	ibufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
 	ibufferDesc.CPUAccessFlags = 0;
 	ibufferDesc.Usage = D3D11_USAGE_DEFAULT;
 	ibufferDesc.MiscFlags = 0;
-	ibufferDesc.ByteWidth = (UINT)(indices.size()*sizeof(unsigned));
+	ibufferDesc.ByteWidth = (UINT)(indices.size() * sizeof(unsigned));
 	// Data resource
 	D3D11_SUBRESOURCE_DATA idata;
 	idata.pSysMem = &indices[0];
 	// Create index buffer on device using descriptor & data
 	const HRESULT ihr = dxdevice->CreateBuffer(&ibufferDesc, &idata, &index_buffer);
 	SETNAME(index_buffer, "IndexBuffer");
-    
+
 	nbr_indices = (unsigned int)indices.size();
 }
 
@@ -322,12 +175,32 @@ void QuadModel::Render() const
 OBJModel::OBJModel(
 	const std::string& objfile,
 	ID3D11Device* dxdevice,
-	ID3D11DeviceContext* dxdevice_context)
+	ID3D11DeviceContext* dxdevice_context, bool isSkybox)
 	: Model(dxdevice, dxdevice_context)
 {
 	// Load the OBJ
 	OBJLoader* mesh = new OBJLoader();
 	mesh->Load(objfile);
+	this->isSkybox = isSkybox;
+	const char* filePaths[6] =
+	{
+		"assets/cubemaps/skybox/skybox_posx.png",
+		"assets/cubemaps/skybox/skybox_negx.png",
+		"assets/cubemaps/skybox/skybox_posy.png",
+		"assets/cubemaps/skybox/skybox_negy.png",
+		"assets/cubemaps/skybox/skybox_posz.png",
+		"assets/cubemaps/skybox/skybox_negz.png" //wrong
+	};
+
+	//if (isSkybox)
+	//{
+	//	filePaths[0] = "assets/cubemaps/skybox/skybox_posx.png";
+	//	filePaths[1] = "assets/cubemaps/skybox/skybox_negx.png";
+	//	filePaths[2] = "assets/cubemaps/skybox/skybox_posy.png";
+	//	filePaths[3] = "assets/cubemaps/skybox/skybox_negy.png";
+	//	filePaths[4] = "assets/cubemaps/skybox/skybox_posz.png";
+	//	filePaths[5] = "assets/cubemaps/skybox/skybox_negz.png";
+	//}
 
 	// Load and organize indices in ranges per drawcall (material)
 
@@ -348,7 +221,15 @@ OBJModel::OBJModel(
 		index_ranges.push_back({ i_ofs, i_size, 0, mtl_index });
 
 		i_ofs = (unsigned int)indices.size();
+
 	}
+
+	for (int i = 0; i < indices.size(); i += 3) // For all triangles
+		Compute_tangentspace(
+			mesh->vertices[indices[i + 0]],
+			mesh->vertices[indices[i + 1]],
+			mesh->vertices[indices[i + 2]]
+		);
 
 	// Vertex array descriptor
 	D3D11_BUFFER_DESC vbufferDesc = { 0 };
@@ -356,34 +237,27 @@ OBJModel::OBJModel(
 	vbufferDesc.CPUAccessFlags = 0;
 	vbufferDesc.Usage = D3D11_USAGE_DEFAULT;
 	vbufferDesc.MiscFlags = 0;
-	vbufferDesc.ByteWidth = (UINT)(mesh->vertices.size()*sizeof(Vertex));
+	vbufferDesc.ByteWidth = (UINT)(mesh->vertices.size() * sizeof(Vertex));
 	// Data resource
 	D3D11_SUBRESOURCE_DATA vdata;
 	vdata.pSysMem = &(mesh->vertices)[0];
 	// Create vertex buffer on device using descriptor & data
 	HRESULT vhr = dxdevice->CreateBuffer(&vbufferDesc, &vdata, &vertex_buffer);
 	SETNAME(vertex_buffer, "VertexBuffer");
-    
+
 	// Index array descriptor
 	D3D11_BUFFER_DESC ibufferDesc = { 0 };
 	ibufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
 	ibufferDesc.CPUAccessFlags = 0;
 	ibufferDesc.Usage = D3D11_USAGE_DEFAULT;
 	ibufferDesc.MiscFlags = 0;
-	ibufferDesc.ByteWidth = (UINT)(indices.size()*sizeof(unsigned));
+	ibufferDesc.ByteWidth = (UINT)(indices.size() * sizeof(unsigned));
 	// Data resource
 	D3D11_SUBRESOURCE_DATA idata;
 	idata.pSysMem = &indices[0];
 	// Create index buffer on device using descriptor & data
 	HRESULT ihr = dxdevice->CreateBuffer(&ibufferDesc, &idata, &index_buffer);
 	SETNAME(index_buffer, "IndexBuffer");
-    
-	for (int i = 0; i < indices.size(); i += 3) // For all triangles
-		Model::Compute_tangentspace(
-			mesh->vertices[indices[i + 0]],
-			mesh->vertices[indices[i + 1]],
-			mesh->vertices[indices[i + 2]]
-		);
 
 	// Copy materials from mesh
 	append_materials(mesh->materials);
@@ -394,13 +268,6 @@ OBJModel::OBJModel(
 	if (pos != std::string::npos)
 		objectMapPath = objfile.substr(0, pos + 1);
 
-	baseMaterial.Kd_texture_filename = objectMapPath + "diffuseColor.jpg";
-	//baseMaterial.normal_texture_filename = objectMapPath + "normalMap.png";
-	baseMaterial.normal_texture_filename = "assets/objects/sphere/normalMap.png";
-	
-	std::cout << "LOOKING FOR DIFFUSE TEX IN: " << baseMaterial.Kd_texture_filename << std::endl;
-
-
 	// Go through materials and load textures (if any) to device
 	std::cout << "Loading textures..." << std::endl;
 	for (auto& mtl : materials)
@@ -409,14 +276,20 @@ OBJModel::OBJModel(
 
 		// Load Diffuse texture
 		//
-		if (mtl.Kd_texture_filename.size()) 
+		if (mtl.Kd_texture_filename.size())
 		{
 			hr = LoadTextureFromFile(dxdevice, dxdevice_context, mtl.Kd_texture_filename.c_str(), &mtl.diffuse_texture);
 			std::cout << "\t" << mtl.Kd_texture_filename << (SUCCEEDED(hr) ? " - OK" : "- FAILED") << std::endl;
 		}
+		else if(isSkybox)
+		{
+			hr = LoadCubeTextureFromFile(dxdevice, filePaths, &baseMaterial.diffuse_texture);
+			std::cout << "loaded extra skybox texture: " << filePaths << (SUCCEEDED(hr) ? " - OK" : "- FAILED") << std::endl;
+		}
 		else
 		{
 			hr = LoadTextureFromFile(dxdevice, dxdevice_context, baseMaterial.Kd_texture_filename.c_str(), &mtl.diffuse_texture);
+			std::cout << "loaded extra texture: " << baseMaterial.Kd_texture_filename << (SUCCEEDED(hr) ? " - OK" : "- FAILED") << std::endl;
 		}
 
 		// Load Normal texture
@@ -425,10 +298,18 @@ OBJModel::OBJModel(
 			hr = LoadTextureFromFile(dxdevice, dxdevice_context, mtl.normal_texture_filename.c_str(), &mtl.normal_texture);
 			std::cout << "\t" << mtl.normal_texture_filename << (SUCCEEDED(hr) ? " - OK" : "- FAILED") << std::endl;
 		}
-		else 
+		else //This gives all models without their own normal maps a "default" normal map
 		{
 			hr = LoadTextureFromFile(dxdevice, dxdevice_context, baseMaterial.normal_texture_filename.c_str(), &mtl.normal_texture);
+			std::cout << "loaded extra texture: " << baseMaterial.normal_texture_filename << (SUCCEEDED(hr) ? " - OK" : "- FAILED") << std::endl;
 		}
+
+		if (mtl.specular_texture_filename.size())
+		{
+			hr = LoadTextureFromFile(dxdevice, dxdevice_context, mtl.specular_texture_filename.c_str(), &mtl.specular_texture);
+			std::cout << "\t" << mtl.specular_texture_filename << (SUCCEEDED(hr) ? " - OK" : "- FAILED") << std::endl;
+		}
+
 	}
 
 	std::cout << "Done." << std::endl;
@@ -452,19 +333,15 @@ void OBJModel::Render() const
 	for (auto& irange : index_ranges)
 	{
 		// Fetch material
-		const Material& mtl = materials[irange.mtl_index];
-
-		if (materials.size() == 0)
-		{
-			const Material& mtl = baseMaterial;
-		}
-
-		// Bind diffuse texture to slot t0 of the PS
+		Material mtl = materials[irange.mtl_index];
+		//Bind Textures
 		dxdevice_context->PSSetShaderResources(0, 1, &mtl.diffuse_texture.texture_SRV);
 		dxdevice_context->PSSetShaderResources(1, 1, &mtl.normal_texture.texture_SRV);
-		dxdevice_context->PSSetSamplers(0, 1, &samplerStates[samplerStateIndex]);
+		//Bind Sampler
+		
 
 		UpdateMaterialAndShininessBuffer(mtl);
+		UpdateMaterialAndShininessBuffer(baseMaterial); //Adds material and shine to all models using the base Material
 
 		// Make the drawcall
 		dxdevice_context->DrawIndexed(irange.size, irange.start, 0);
@@ -479,5 +356,4 @@ OBJModel::~OBJModel()
 		SAFE_RELEASE(material.normal_texture.texture_SRV);
 		// Release other used textures ...
 	}
-	SAFE_RELEASE(samplerState);
 }

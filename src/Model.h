@@ -32,16 +32,9 @@ protected:
 	ID3D11Buffer* index_buffer = nullptr;
 	ID3D11Buffer* materialAndShininessBuffer = nullptr;
 
-	ID3D11SamplerState* samplerState = nullptr;
-	ID3D11SamplerState* samplerState2 = nullptr;
-	ID3D11SamplerState* samplerState3 = nullptr;
-	ID3D11SamplerState* samplerState4 = nullptr;
-	ID3D11SamplerState* samplerState5 = nullptr;
-	ID3D11SamplerState* samplerState6 = nullptr;
-	std::vector< ID3D11SamplerState*> samplerStates;
 
-	float samplerStateIndex = 0;
-	Material baseMaterial;
+
+	
 
 public:
 
@@ -57,16 +50,15 @@ public:
 	};
 
 	float shininess;
+	Material baseMaterial;
 
 	void InitMaterialAndShininessBuffer();
-	void CreateSamplerState();
 	void UpdateMaterialAndShininessBuffer(Material material) const;
 	void SetBasicMaterialValues(vec3f Ka, vec3f Kd, vec3f Ks, float shininess);
-	void ChangeSamplerState(const float stateChange);
+	void ChangeDiffuseTexture(std::string filepath);
 	void Compute_tangentspace(Vertex& v0, Vertex& v1, Vertex& v2);
+	Material* GetDefaultMaterial();
 
-
-	ID3D11SamplerState* GetCurrentSamplerState();
 	//
 	// Abstract render method: must be implemented by derived classes
 	//
@@ -111,6 +103,7 @@ class OBJModel : public Model
 
 	std::vector<IndexRange> index_ranges;
 	std::vector<Material> materials;
+	bool isSkybox;
 
 	void append_materials(const std::vector<Material>& mtl_vec)
 	{
@@ -122,7 +115,7 @@ public:
 	OBJModel(
 		const std::string& objfile,
 		ID3D11Device* dxdevice,
-		ID3D11DeviceContext* dxdevice_context);
+		ID3D11DeviceContext* dxdevice_context, bool isSkybox);
 
 	virtual void Render() const;
 

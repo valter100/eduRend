@@ -47,7 +47,6 @@ public:
 	void SetTransformMatrix(mat4f _transformMatrix);
 	mat4f GetTransformMatrix();
 
-	void Compute_tangentspace(Vertex& v0, Vertex& v1, Vertex& v2);
 	void LoadTexture();
 }
 ;

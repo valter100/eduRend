@@ -102,9 +102,6 @@ Cube::Cube(ID3D11Device* dxdevice, ID3D11DeviceContext* dxdevice_context, Cube* 
 
 	nbr_indices = (unsigned int)indices.size();
 
-	baseMaterial.Kd_texture_filename = "assets/objects/cube/diffuseColor.jpg";
-	baseMaterial.normal_texture_filename = "assets/objects/cube/normalMap.png";
-
 	LoadTexture();
 }
 
@@ -119,24 +116,14 @@ void Cube::Render() const
 	dxdevice_context->IASetIndexBuffer(index_buffer, DXGI_FORMAT_R32_UINT, 0);
 	dxdevice_context->PSSetConstantBuffers(1, 1, &materialAndShininessBuffer);
 
+	//Bind material textures & sampler
 	dxdevice_context->PSSetShaderResources(0, 1, &baseMaterial.diffuse_texture.texture_SRV);
 	dxdevice_context->PSSetShaderResources(1, 1, &baseMaterial.normal_texture.texture_SRV);
-	dxdevice_context->PSSetSamplers(0, 1, &samplerStates[samplerStateIndex]);
 	UpdateMaterialAndShininessBuffer(baseMaterial);
 
 	// Make the drawcall
 	dxdevice_context->DrawIndexed(nbr_indices, 0, 0);
 
-}
-
-void Cube::Compute_tangentspace(Vertex& v0, Vertex& v1, Vertex& v2)
-{
-	vec3f tangent, binormal;
-	// TODO: compute tangent and binormal vectors
-	// using Lengyel’s method, as given in lecture
-
-	v0.Tangent = v1.Tangent = v2.Tangent = tangent;
-	v0.Binormal = v1.Binormal = v2.Binormal = binormal;
 }
 
 void Cube::GiveVertexValues(Vertex vertex, vec3f pos, vec3f normal, vec2f texCoord)
@@ -231,18 +218,14 @@ void Cube::LoadTexture()
 {
 	HRESULT hr;
 
-	// Load Diffuse texture
-	std::cout << "BASE MATERIAL TEXTURE FILE NAME: " << baseMaterial.Kd_texture_filename << std::endl;
 	if (baseMaterial.Kd_texture_filename.size())
 	{
-		std::cout << "ADDING TEXTURE TO BOX" << std::endl;
 		hr = LoadTextureFromFile(dxdevice, dxdevice_context, baseMaterial.Kd_texture_filename.c_str(), &baseMaterial.diffuse_texture);
 		std::cout << "\t" << baseMaterial.Kd_texture_filename.c_str() << (SUCCEEDED(hr) ? " - OK" : "- FAILED") << std::endl;
 	}
 	
 	if (baseMaterial.normal_texture_filename.size())
 	{
-		std::cout << "ADDING TEXTURE TO BOX" << std::endl;
 		hr = LoadTextureFromFile(dxdevice, dxdevice_context, baseMaterial.normal_texture_filename.c_str(), &baseMaterial.normal_texture);
 		std::cout << "\t" << baseMaterial.normal_texture_filename.c_str() << (SUCCEEDED(hr) ? " - OK" : "- FAILED") << std::endl;
 	}

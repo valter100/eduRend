@@ -47,8 +47,8 @@ PSIn VS_main(VSIn input)
 	output.Normal = normalize(mul(ModelToWorldMatrix, float4(input.Normal,0)).xyz );
 	output.TexCoord = float2(input.TexCoord.x*TexScale, input.TexCoord.y*TexScale);
 
-	output.Tangent = mul(ModelToWorldMatrix, float4(input.Tangent, 1)).xyz;
-	output.Binormal = mul(ModelToWorldMatrix, float4(input.Binormal, 1)).xyz;
+	output.Tangent = normalize(mul(ModelToWorldMatrix, float4(input.Tangent, 1))).xyz;
+	output.Binormal = normalize(mul(ModelToWorldMatrix, float4(input.Binormal, 1))).xyz;
 	output.WorldPos = mul(ModelToWorldMatrix, float4(input.Pos, 1)).xyz;
 		
 	return output;

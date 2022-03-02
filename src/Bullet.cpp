@@ -1,6 +1,6 @@
 #include "Bullet.h"
 
-Bullet::Bullet(const std::string& objfile, ID3D11Device* dxdevice, ID3D11DeviceContext* dxdevice_context, mat4f startTransform) : OBJModel(objfile, dxdevice, dxdevice_context)
+Bullet::Bullet(const std::string& objfile, ID3D11Device* dxdevice, ID3D11DeviceContext* dxdevice_context, mat4f startTransform) : OBJModel(objfile, dxdevice, dxdevice_context, false)
 {
 	transformMatrix = startTransform;
 	speed = 1.5f;

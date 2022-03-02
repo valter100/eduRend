@@ -27,17 +27,23 @@ OurTestScene::OurTestScene(
 	int window_height) :
 	Scene(dxdevice, dxdevice_context, window_width, window_height)
 {
-	source1 = new Light(vec3f(0, -0.0f, -22), true, dxdevice, dxdevice_context);
-	source1->AddAnimationPath(vec3f(6, -0.0f, -8.0f));
-	source1->AddAnimationPath(vec3f(0, -0.0f, 6));
-	source1->AddAnimationPath(vec3f(-6, -0.0f, -8.0f));
+	source1 = new Light(vec3f(0, -0.0f, -20), true, dxdevice, dxdevice_context);
+	source1->AddAnimationPath(vec3f(6, -0.0f, -15.0f));
+	source1->AddAnimationPath(vec3f(8, -0.0f, -8.0f));
+	source1->AddAnimationPath(vec3f(6, -0.0f, -1.0f));
+	source1->AddAnimationPath(vec3f(0, -0.0f, 2));
+	source1->AddAnimationPath(vec3f(-6, -0.0f, -1.0f));
+	source1->AddAnimationPath(vec3f(-8, -0.0f, -8.0f));
+	source1->AddAnimationPath(vec3f(-6, -0.0f, -15.0f));
 
-	source2 = new Light(vec3f(0, 20, -30), true, dxdevice, dxdevice_context);
-	source2->AddAnimationPath(vec3f(0, -5, -30));
+	source2 = new Light(vec3f(0, 20, -20), true, dxdevice, dxdevice_context);
+	source2->AddAnimationPath(vec3f(-10, -2, -20));
+	source2->AddAnimationPath(vec3f(10, -2, -20));
 
 	InitTransformationBuffer();
 	// + init other CBuffers
 	InitCameraAndLightBuffer();
+	CreateSamplerState();
 }
 
 //
@@ -53,8 +59,8 @@ void OurTestScene::Init()
 
 	// Move camera to (0,0,5)
 	camera->moveTo({ 0, 0, 5 });
-	lightSources.push_back(source1);
-	//lightSources.push_back(source2);
+	lightSources[0] = source1;
+	lightSources[1] = source2;
 
 	cube = new Cube(dxdevice, dxdevice_context, nullptr);
 	secondCube = new Cube(dxdevice, dxdevice_context, cube);
@@ -71,19 +77,37 @@ void OurTestScene::Init()
 	cubes.push_back(fifthCube); models.push_back(fifthCube);
 	cubes.push_back(sixthCube); models.push_back(sixthCube);
 
-	sponza = new OBJModel("assets/crytek-sponza/sponza.obj", dxdevice, dxdevice_context);
+	sponza = new OBJModel("assets/crytek-sponza/sponza.obj", dxdevice, dxdevice_context, false);
 	models.push_back(sponza);
-	bush = new OBJModel("assets/objects/bush/bush.obj", dxdevice, dxdevice_context);
+	bush = new OBJModel("assets/objects/bush/bush.obj", dxdevice, dxdevice_context, false);
 	models.push_back(bush);
-	character = new OBJModel("assets/objects/character/character.obj", dxdevice, dxdevice_context);
+	character = new OBJModel("assets/objects/character/character.obj", dxdevice, dxdevice_context, false);
 	models.push_back(character);
-	train = new OBJModel("assets/objects/train/train.obj", dxdevice, dxdevice_context);
+	train = new OBJModel("assets/objects/train/train.obj", dxdevice, dxdevice_context, false);
 	models.push_back(train);
 	gun = new Gun("assets/objects/gun/gun.obj", dxdevice, dxdevice_context, camera, 0.5f);
 	models.push_back(gun);
-	sphere = new OBJModel("assets/objects/sphere/sphere.obj", dxdevice, dxdevice_context);
+	sphere = new OBJModel("assets/objects/sphere/sphere.obj", dxdevice, dxdevice_context, false);
 	models.push_back(sphere);
+	skybox = new OBJModel("assets/objects/skybox/skybox.obj", dxdevice, dxdevice_context, true);
+	models.push_back(skybox);
 	ToggleClipping(true);
+
+	const char* filePaths[6] =
+	{
+		"assets/cubemaps/debug_cubemap/debug_posx.png",
+		"assets/cubemaps/debug_cubemap/debug_negx.png",
+		"assets/cubemaps/debug_cubemap/debug_posy.png",
+		"assets/cubemaps/debug_cubemap/debug_negy.png",
+		"assets/cubemaps/debug_cubemap/debug_posz.png",
+		"assets/cubemaps/debug_cubemap/debug_negz.png"
+	};
+
+	HRESULT hr = LoadCubeTextureFromFile(dxdevice,
+		filePaths,
+		&cubeTexture);
+
+	std::cout << "loaded cubemap: " << cubeTexture << (SUCCEEDED(hr) ? " - OK" : "- FAILED") << std::endl;
 }
 
 //
@@ -104,31 +128,31 @@ void OurTestScene::Update(float dt, InputHandler* input_handler)
 
 #pragma region Camera Controls
 
-
-
-
 	if (input_handler->IsKeyPressed(Keys::Right) && !isPressingKey)
 	{
-		for (Model* model : models)
+		samplerStateIndex += 1;
+
+		if (samplerStateIndex >= samplerStates.size())
 		{
-			model->ChangeSamplerState(1);
+			samplerStateIndex = 0;
 		}
-		if (models.size() > 0)
-			std::cout << models[0]->GetCurrentSamplerState() << std::endl;
-		//camera->ChangePrePos(1)
+
+		std::cout << samplerStateIndex << std::endl;
 		isPressingKey = true;
 	}
 	else if (input_handler->IsKeyPressed(Keys::Left) && !isPressingKey)
 	{
-		for (Model* model : models)
+		samplerStateIndex -= 1;
+
+		if (samplerStateIndex < 0)
 		{
-			model->ChangeSamplerState(-1);
+			samplerStateIndex = samplerStates.size() - 1;
 		}
-		if(models.size() > 0)
-			models[0]->GetCurrentSamplerState();
-		//camera->ChangePrePos(-1);
+
+		std::cout << samplerStateIndex << std::endl;
 		isPressingKey = true;
 	}
+
 	if (input_handler->IsKeyPressed(Keys::Space) && !isPressingKey)
 	{
 		camera->SaveView();
@@ -216,22 +240,12 @@ void OurTestScene::Update(float dt, InputHandler* input_handler)
 		mat4f::rotation(angle * -3, 0.0f, 0.0f, 1.0f),
 		mat4f::scaling(0.2f, 0.2f, 0.2f));
 
-	//Depentent scaling
-	/*cube->SetTransformMatrix(mat4f::translation(-2, 1, 0) * mat4f::rotation(angle, 0.0f, 1.0f, 0.0f) * mat4f::scaling(0.5f, 0.5f, 0.5f));
-	secondCube->SetTransformMatrix((secondCube->GetParent()->GetTransformMatrix() * (mat4f::translation(3, 0, 3)  * mat4f::rotation(angle * 2, 0.0f, 1.0f, 0.0f)) * mat4f::scaling(0.6f, 0.6f, 0.6f)));
-	thirdCube->SetTransformMatrix(thirdCube->GetParent()->GetTransformMatrix() * (mat4f::translation(3, 0, 3) * mat4f::rotation(-angle * 0.5f, 0.0f, 1.0f, 0.0f) * mat4f::scaling(0.4f, 0.4f, 0.4f)));
-
-	fourthCube->SetTransformMatrix(fourthCube->GetParent()->GetTransformMatrix() * (mat4f::translation(-4, 0, -4) * mat4f::rotation(-angle * 1, 1.0f, 0.0f, 0.0f) * mat4f::scaling(0.5f, 0.5f, 0.5f)));
-	fifthCube->SetTransformMatrix(fifthCube->GetParent()->GetTransformMatrix() * (mat4f::translation(0, 2, 2) * mat4f::rotation(angle * 2, 0.0f, 1.0f, 0.0f) * mat4f::scaling(1.0f, 1.0f, 1.0f)));*/
-
-
-
 #pragma endregion
 #pragma region Objects
 	// Sponza model-to-world transformation
 	Msponza = mat4f::translation(0, -5, 0) *		 // Move down 5 units
 		mat4f::rotation(fPI / 2, 0.0f, 1.0f, 0.0f) * // Rotate pi/2 radians (90 degrees) around y
-		mat4f::scaling(0.05f);						 // The scene is quite large so scale it down to 5%
+		mat4f::scaling(1);						 // The scene is quite large so scale it down to 5%
 
 	MBush = mat4f::translation(-4, -5, -8) *
 		mat4f::rotation(angle * 0, 0.0f, 0.0f, 0.0f) *
@@ -249,9 +263,14 @@ void OurTestScene::Update(float dt, InputHandler* input_handler)
 		mat4f::rotation(angle * 0, 0.0f, 0.0f, 0.0f) *
 		mat4f::scaling(1.0f);
 
+	MSkybox = mat4f::translation(0, 0, 0) *
+		mat4f::rotation(angle * 0, 0.0f, 0.0f, 0.0f) *
+		mat4f::scaling(200);
+
 	gun->SetTransformMatrix(gun->GetCamera()->GetViewToWorldMatrix(), mat4f::translation(1.25f, -2.5f, -4.0f),
 		mat4f::rotation(1.2f, 0.0f, 1.0f, 0.0f),
 		mat4f::scaling(0.05f));
+
 
 #pragma endregion
 
@@ -270,10 +289,14 @@ void OurTestScene::Update(float dt, InputHandler* input_handler)
 
 void OurTestScene::Render()
 {
+	dxdevice_context->PSSetSamplers(0, 1, &samplerStates[samplerStateIndex]);
+
 	// Bind transformation_buffer to slot b0 of the VS
 	dxdevice_context->VSSetConstantBuffers(0, 1, &transformation_buffer);
 	// Binds buffers to slots of the PS
 	dxdevice_context->PSSetConstantBuffers(0, 1, &camera_and_light_buffer);
+	//
+	dxdevice_context->PSSetShaderResources(2, 1, &cubeTexture.texture_SRV);
 
 	// Obtain the matrices needed for rendering from the camera
 	Mview = camera->Get_WorldToViewMatrix();
@@ -308,6 +331,9 @@ void OurTestScene::Render()
 	UpdateTransformationBuffer(MSphere, Mview, Mproj);
 	sphere->Render();
 
+	UpdateTransformationBuffer(MSkybox, Mview, Mproj);
+	skybox->Render();
+
 	for (Light* light : lightSources)
 	{
 		UpdateTransformationBuffer(light->GetTransformMatrix(), Mview, Mproj);
@@ -330,6 +356,11 @@ void OurTestScene::Release()
 	SAFE_RELEASE(transformation_buffer);
 	// + release other CBuffers
 	SAFE_RELEASE(camera_and_light_buffer);
+
+	for (ID3D11SamplerState* state : samplerStates)
+	{
+		SAFE_RELEASE(state);
+	}
 }
 
 void OurTestScene::WindowResize(
@@ -390,8 +421,12 @@ void OurTestScene::UpdateCameraAndLightBuffer(vec4f CamPosition, vec4f LightPosi
 	dxdevice_context->Map(camera_and_light_buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &resource);
 	CameraAndLightBuffer* cameraAndLightBuffer = (CameraAndLightBuffer*)resource.pData;
 	cameraAndLightBuffer->CamPosition = CamPosition;
-	cameraAndLightBuffer->LightPosition1 = LightPosition1;
-	cameraAndLightBuffer->LightPosition2 = LightPosition2;
+
+	for (int i = 0; i < sizeof(lightSources) / sizeof(lightSources[0]); i++)
+	{
+		cameraAndLightBuffer->LightPositions[i] = vec4f(lightSources[i]->GetPosition(), sizeof(lightSources) / sizeof(lightSources[0]));
+	}
+
 	dxdevice_context->Unmap(camera_and_light_buffer, 0);
 }
 
@@ -456,4 +491,111 @@ void OurTestScene::ClipCursorToWindow()
 	rect.bottom = lr.y;
 
 	ClipCursor(&rect);
+}
+
+void OurTestScene::CreateSamplerState()
+{
+	HRESULT hr;
+
+	D3D11_SAMPLER_DESC sd =
+	{
+		D3D11_FILTER_ANISOTROPIC,
+		D3D11_TEXTURE_ADDRESS_WRAP,
+		D3D11_TEXTURE_ADDRESS_WRAP,
+		D3D11_TEXTURE_ADDRESS_WRAP,
+		0.0f,
+		16,
+		D3D11_COMPARISON_NEVER,
+		{1.0f, 1.0f, 1.0f, 1.0f },
+		-FLT_MAX,
+		FLT_MAX,
+	};
+	ASSERT(hr = dxdevice->CreateSamplerState(&sd, &samplerState));
+
+	samplerStates.push_back(samplerState);
+
+	D3D11_SAMPLER_DESC sd2 =
+	{
+		D3D11_FILTER_ANISOTROPIC,
+		D3D11_TEXTURE_ADDRESS_MIRROR,
+		D3D11_TEXTURE_ADDRESS_MIRROR,
+		D3D11_TEXTURE_ADDRESS_WRAP,
+		0.0f,
+		16,
+		D3D11_COMPARISON_NEVER,
+		{1.0f, 1.0f, 1.0f, 1.0f },
+		-FLT_MAX,
+		FLT_MAX,
+	};
+	ASSERT(hr = dxdevice->CreateSamplerState(&sd2, &samplerState2));
+
+	samplerStates.push_back(samplerState2);
+
+	D3D11_SAMPLER_DESC sd3 =
+	{
+		D3D11_FILTER_ANISOTROPIC,
+		D3D11_TEXTURE_ADDRESS_CLAMP,
+		D3D11_TEXTURE_ADDRESS_CLAMP,
+		D3D11_TEXTURE_ADDRESS_WRAP,
+		0.0f,
+		16,
+		D3D11_COMPARISON_NEVER,
+		{1.0f, 1.0f, 1.0f, 1.0f },
+		-FLT_MAX,
+		FLT_MAX,
+	};
+	ASSERT(hr = dxdevice->CreateSamplerState(&sd3, &samplerState3));
+
+	samplerStates.push_back(samplerState3);
+
+	D3D11_SAMPLER_DESC sd4 =
+	{
+		D3D11_FILTER_MIN_MAG_MIP_POINT,
+		D3D11_TEXTURE_ADDRESS_WRAP,
+		D3D11_TEXTURE_ADDRESS_WRAP,
+		D3D11_TEXTURE_ADDRESS_WRAP,
+		0.0f,
+		16,
+		D3D11_COMPARISON_NEVER,
+		{1.0f, 1.0f, 1.0f, 1.0f },
+		-FLT_MAX,
+		FLT_MAX,
+	};
+	ASSERT(hr = dxdevice->CreateSamplerState(&sd4, &samplerState4));
+
+	samplerStates.push_back(samplerState4);
+
+	D3D11_SAMPLER_DESC sd5 =
+	{
+		D3D11_FILTER_MIN_MAG_MIP_LINEAR,
+		D3D11_TEXTURE_ADDRESS_WRAP,
+		D3D11_TEXTURE_ADDRESS_WRAP,
+		D3D11_TEXTURE_ADDRESS_WRAP,
+		0.0f,
+		16,
+		D3D11_COMPARISON_NEVER,
+		{1.0f, 1.0f, 1.0f, 1.0f },
+		-FLT_MAX,
+		FLT_MAX,
+	};
+	ASSERT(hr = dxdevice->CreateSamplerState(&sd5, &samplerState5));
+
+	samplerStates.push_back(samplerState5);
+
+	D3D11_SAMPLER_DESC sd6 =
+	{
+		D3D11_FILTER_ANISOTROPIC,
+		D3D11_TEXTURE_ADDRESS_WRAP,
+		D3D11_TEXTURE_ADDRESS_WRAP,
+		D3D11_TEXTURE_ADDRESS_WRAP,
+		0.0f,
+		16,
+		D3D11_COMPARISON_NEVER,
+		{1.0f, 1.0f, 1.0f, 1.0f },
+		-FLT_MAX,
+		FLT_MAX,
+	};
+	ASSERT(hr = dxdevice->CreateSamplerState(&sd6, &samplerState6));
+
+	samplerStates.push_back(samplerState6);
 }

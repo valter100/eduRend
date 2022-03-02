@@ -16,6 +16,7 @@ class Light
 
 	std::vector<vec3f> positions;
 	float positionIndex;
+	float movementRate;
 
 	vec3f firstPos;
 	vec3f secondPos;

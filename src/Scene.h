@@ -27,7 +27,9 @@ protected:
 	ID3D11DeviceContext*	dxdevice_context;
 	int						window_width;
 	int						window_height;
+
 	std::vector<Model*> models;
+	Texture cubeTexture;
 
 public:
 
@@ -65,6 +67,16 @@ class OurTestScene : public Scene
 	// CBuffer client-side definitions
 	// These must match the corresponding shader definitions 
 
+	ID3D11SamplerState* samplerState = nullptr;
+	ID3D11SamplerState* samplerState2 = nullptr;
+	ID3D11SamplerState* samplerState3 = nullptr;
+	ID3D11SamplerState* samplerState4 = nullptr;
+	ID3D11SamplerState* samplerState5 = nullptr;
+	ID3D11SamplerState* samplerState6 = nullptr;
+	std::vector< ID3D11SamplerState*> samplerStates;
+	float samplerStateIndex = 0;
+
+
 	struct TransformationBuffer
 	{
 		mat4f ModelToWorldMatrix;
@@ -75,8 +87,7 @@ class OurTestScene : public Scene
 	struct CameraAndLightBuffer
 	{
 		vec4f CamPosition;
-		vec4f LightPosition1;
-		vec4f LightPosition2;
+		vec4f LightPositions[2];
 	};
 
 	//
@@ -91,7 +102,7 @@ class OurTestScene : public Scene
 
 	Light* source1;
 	Light* source2;
-	std::vector <Light*> lightSources;
+	Light* lightSources[1];
 
 	Cube* cube;
 	Cube* secondCube;
@@ -106,6 +117,7 @@ class OurTestScene : public Scene
 	OBJModel* character;
 	OBJModel* train;
 	OBJModel* sphere;
+	OBJModel* skybox;
 
 	//CompositeObject Model-toworld transformation matrices
 	mat4f MBush;
@@ -113,6 +125,7 @@ class OurTestScene : public Scene
 	mat4f MTrain;
 	mat4f MGun;
 	mat4f MSphere;
+	mat4f MSkybox;
 
 	// Model-to-world transformation matrices
 	mat4f Msponza;
@@ -128,13 +141,13 @@ class OurTestScene : public Scene
 	// Misc
 	float angle = 0;			// A per-frame updated rotation angle (radians)...
 	float angle_vel = fPI / 2;	// ...and its velocity (radians/sec)
-	float camera_vel = 7.0f;	// Camera movement velocity in units/s
+	float camera_vel = 15.0f;	// Camera movement velocity in units/s
 	float fps_cooldown = 0;
 	bool isPressingKey = 0;
 	bool cursorIsShowing = true;
 	void InitTransformationBuffer();
 	void InitCameraAndLightBuffer();
-
+	void CreateSamplerState();
 	void UpdateTransformationBuffer(
 		mat4f ModelToWorldMatrix,
 		mat4f WorldToViewMatrix,

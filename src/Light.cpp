@@ -4,12 +4,12 @@
 Light::Light(vec3f newPosition, bool _isAnimated, ID3D11Device* dxdevice, ID3D11DeviceContext* dxdevice_context)
 {
 	position = newPosition;
-
+	movementRate = 1 / (144 * 1.25f);
 	positions.push_back(newPosition);
 	isAnimated = _isAnimated;
 	positionIndex = 0;
 
-	lightSphere = new OBJModel("assets/objects/sphere/sphere.obj", dxdevice, dxdevice_context);
+	lightSphere = new OBJModel("assets/objects/sphere/sphere.obj", dxdevice, dxdevice_context, false);
 	MLightSphere = (mat4f::translation(1, 1, 1),
 		mat4f::rotation(0, 0.0f, 1.0f, 0.0f),
 		mat4f::scaling(0.1f));
@@ -26,9 +26,7 @@ void Light::Update()
 {
 	double distance = sqrt(pow(position.x - goalVector.x, 2) + pow(position.y - goalVector.y, 2) + pow(position.z - goalVector.z, 2));
 
-	position.x += (float)movementSpeed.x / (144 * 2);
-	position.y += (float)movementSpeed.y / (144 * 2);
-	position.z += (float)movementSpeed.z / (144 * 2);
+	position += movementSpeed * movementRate;
 
 	if (distance < 1)
 	{
